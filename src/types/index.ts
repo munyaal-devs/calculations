@@ -51,6 +51,9 @@ export enum ChargeApplicationEnum {
 * @application - Tipo de aplicación
 * */
 export type Charge = {
+    id?: string | number;
+    order?: number;
+    chargeAmount?: Decimal;
     amount: number;
     type: ChargeTypeEnum;
     application: ChargeApplicationEnum;
@@ -66,6 +69,20 @@ export type Payment = {
     change: number;
     amount: number;
 }
+
+export type Prices = {
+    quantity: Decimal | number,
+    price: Decimal | number;
+    priceWithIva?: Decimal,
+    discountsWithIva?: Decimal,
+    discountsWithoutIva?: Decimal,
+    priceWithoutIva?: Decimal,
+    unitPrice?: Decimal,
+    taxBase?: Decimal,
+    tax?: Decimal,
+    total?: Decimal,
+}
+
 /*
 * Concepto
 *
@@ -78,18 +95,8 @@ export type Payment = {
 export type Concept = {
     id: number | string;
     name: string;
-    price: number;
     charges: Charge[];
-    quantity: Decimal | number,
-    priceWithIva?: Decimal,
-    discountsWithIva?: Decimal,
-    discountsWithoutIva?: Decimal,
-    priceWithoutIva?: Decimal,
-    unitPrice?: Decimal,
-    taxBase?: Decimal,
-    tax?: Decimal,
-    total?: Decimal,
-}
+} & Prices
 /*
 * Parámetros para calcular los precios en factura
 *
@@ -134,8 +141,9 @@ export type ConceptAmountDetailsResult = {
 }
 
 export type ApplyChargesParams = {
-    amount: number;
+    fountType: FountTypeEnum;
     charges: Charge[];
+    amount: number;
 }
 
 export type CalculateChargeParams = {

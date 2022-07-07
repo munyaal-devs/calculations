@@ -12,6 +12,7 @@ import {
     Concept,
     ConceptAmountDetailsParams,
     ConceptAmountDetailsResult,
+    FountTypeEnum,
     Payment
 } from '../types';
 
@@ -112,16 +113,18 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
     concepts.forEach((concept: Concept) => {
         const charges = concept.charges.sort((a, b) => a.type - b.type);
 
-        const quantity = new Decimal(concept.quantity);
+        concept.price = new Decimal(concept.price);
+        concept.quantity = new Decimal(concept.quantity);
 
-        const price = new Decimal(concept.price);
+        const amount = concept.price.mul(concept.quantity).toNumber();
 
-        const amount = price.mul(quantity).toNumber();
-
-        const {discounts, surcharges, base} = applyCharges({
+        const {discounts, surcharges, base, charges: chargesResult } = applyCharges({
             amount,
-            charges
+            charges,
+            fountType
         });
+
+        concept.charges = chargesResult;
 
         const {
             amount: amountWithSurcharges,
@@ -131,7 +134,7 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
             ivaPercentage
         })
 
-        const unitPrice = amountWithSurcharges.div(quantity);
+        const unitPrice = amountWithSurcharges.div(concept.quantity);
 
         const {
             amount: amountDiscounts,
@@ -156,8 +159,6 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
 
         concept.discountsWithIva = baseDiscounts;
         discountsWithIva = discountsWithIva.add(baseDiscounts);
-
-        concept.quantity = quantity;
 
         concept.discountsWithoutIva = amountDiscounts;
         discountsWithoutIva = discountsWithoutIva.add(amountDiscounts);
@@ -194,28 +195,64 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
 * Aplicar cargos
 * */
 export const applyCharges = (params: ApplyChargesParams) => {
-    const {charges, amount} = params;
+    const {amount, fountType} = params;
+
+    let {charges} = params
 
     let base = new Decimal(amount);
     let discounts = new Decimal(0);
     let surcharges = new Decimal(0);
 
-    charges.forEach((charge: Charge) => {
-        const {amount: chargeAmount} = calculateCharge({charge, base: amount});
+    if (fountType === FountTypeEnum.DISCOUNT_ON_DISCOUNT) {
+        const chargesSorted = charges.map((value, index) => ({
+            ...value,
+            order: value?.order || index
+        })).sort((a, b) => a.order - b.order);
 
-        if (charge.type === ChargeTypeEnum.DISCOUNTS) {
-            discounts = discounts.add(chargeAmount)
-        }
+        // BASE = 1000
+        let variantBase = new Decimal(amount)
 
-        if (charge.type === ChargeTypeEnum.SURCHARGES) {
-            surcharges = surcharges.add(chargeAmount)
-        }
-    });
+        chargesSorted.forEach((charge: Charge) => {
+            // CHARGE = 50
+            const {amount: chargeAmount} = calculateCharge({charge, base: variantBase.toNumber()});
+
+            if (charge.type === ChargeTypeEnum.DISCOUNTS) {
+                variantBase = variantBase.sub(chargeAmount);
+                discounts = discounts.add(chargeAmount);
+            }
+
+            if (charge.type === ChargeTypeEnum.SURCHARGES) {
+                variantBase = variantBase.add(chargeAmount);
+                surcharges = surcharges.add(chargeAmount);
+            }
+
+            charge.chargeAmount = chargeAmount;
+        });
+
+        charges = chargesSorted;
+    }
+
+    if (fountType === FountTypeEnum.TRADITIONAL) {
+        charges.forEach((charge: Charge) => {
+            const {amount: chargeAmount} = calculateCharge({charge, base: amount});
+
+            if (charge.type === ChargeTypeEnum.DISCOUNTS) {
+                discounts = discounts.add(chargeAmount);
+            }
+
+            if (charge.type === ChargeTypeEnum.SURCHARGES) {
+                surcharges = surcharges.add(chargeAmount);
+            }
+
+            charge.chargeAmount = chargeAmount;
+        });
+    }
 
     return {
         base,
         discounts,
         surcharges,
+        charges
     }
 }
 
@@ -238,21 +275,21 @@ export const calculateCharge = (params: CalculateChargeParams) => {
     switch (type) {
         case ChargeTypeEnum.DISCOUNTS:
             return {
-                base: x.toNumber(),
-                amount: z.toNumber(),
-                applied: x.sub(z).toNumber(),
+                base: x,
+                amount: z,
+                applied: x.sub(z),
             }
         case ChargeTypeEnum.SURCHARGES:
             return {
-                base: x.toNumber(),
-                amount: z.toNumber(),
-                applied: x.add(z).toNumber(),
+                base: x,
+                amount: z,
+                applied: x.add(z),
             }
         default:
             return {
-                base: x.toNumber(),
-                amount: z.toNumber(),
-                applied: x.toNumber(),
+                base: x,
+                amount: z,
+                applied: x,
             }
     }
 }
