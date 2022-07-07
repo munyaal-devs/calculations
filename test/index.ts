@@ -1,18 +1,16 @@
-import { calculateInvoicePrices } from '../src/calculations';
 import {
     ChargeApplicationEnum,
     ChargeTypeEnum,
     Concept,
     FountTypeEnum,
     Payment,
-    TaxPercentageEnum
-} from '../src/types';
-
-console.log('Información de entrada \n \n \n');
+    TaxPercentageEnum,
+    calculateInvoicePrices
+} from '../src';
 
 const payment: Payment = {
     amount: 10000,
-    change: 5000
+    change: 222.4
 };
 
 const concepts: Concept[] = [
@@ -110,14 +108,22 @@ const concepts: Concept[] = [
     },
 ];
 
-// console.log(`Conceptos: ${JSON.stringify(concepts, null, 3)}`);
 
-const value = calculateInvoicePrices({
+const traditional = calculateInvoicePrices({
     payment,
     concepts,
     fountType: FountTypeEnum.TRADITIONAL,
     ivaPercentage: TaxPercentageEnum.T16
 });
-console.log('Información de salida \n \n \n');
 
-console.log(JSON.stringify(value, null, 3))
+console.log(`TRADICIONAL: ${JSON.stringify(traditional, null, 3)}`);
+
+const discountOnDiscount = calculateInvoicePrices({
+    payment,
+    concepts,
+    fountType: FountTypeEnum.DISCOUNT_ON_DISCOUNT,
+    ivaPercentage: TaxPercentageEnum.T16
+});
+
+console.log(`DESCUENTO SOBRE DESCUENTO: ${JSON.stringify(discountOnDiscount, null, 3)}`);
+
