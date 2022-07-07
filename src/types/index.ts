@@ -70,18 +70,26 @@ export type Payment = {
     amount: number;
 }
 
-export type Prices = {
-    quantity: Decimal | number,
-    price: Decimal | number;
-    priceWithIva?: Decimal,
-    discountsWithIva?: Decimal,
-    discountsWithoutIva?: Decimal,
-    priceWithoutIva?: Decimal,
-    unitPrice?: Decimal,
-    taxBase?: Decimal,
-    tax?: Decimal,
-    total?: Decimal,
+export type FiscalPrices = {
+    discount?: Decimal;
+    unitPrice?: Decimal;
+    amount?: Decimal;
+    baseTax?: Decimal;
+    tax?: Decimal;
+    total?: Decimal;
 }
+
+export type Prices = {
+    quantity: Decimal | number;
+    basePrice: Decimal | number;
+    fiscalPrices?: FiscalPrices;
+    amountWithoutCharges?: Decimal;
+    amountWithCharges?: Decimal;
+    discountWithIVA?: Decimal;
+    discountWithoutIVA?: Decimal;
+    chargeWithIVA?: Decimal;
+    chargeWithoutIVA?: Decimal;
+};
 
 /*
 * Concepto
@@ -131,27 +139,20 @@ export type ConceptAmountDetailsParams = {
 
 export type ConceptAmountDetailsResult = {
     concepts: Concept[];
-    priceWithIva: Decimal;
-    priceWithoutIva: Decimal;
-    discountsWithIva: Decimal;
-    discountsWithoutIva: Decimal;
-    totalTaxBase: Decimal;
-    totalTax: Decimal;
-    total: Decimal;
-}
+} & FiscalPrices
 
 export type ApplyChargesParams = {
     fountType: FountTypeEnum;
     charges: Charge[];
-    amount: number;
+    amount: Decimal;
 }
 
 export type CalculateChargeParams = {
-    base: number;
+    base: Decimal;
     charge: Charge;
 }
 
 export type AmountAndTaxParams = {
     ivaPercentage: TaxPercentage;
-    base: number;
+    base: Decimal;
 }

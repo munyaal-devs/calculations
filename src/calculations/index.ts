@@ -21,77 +21,90 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
 
     const paymentAmount = getPaymentAmount(payment);
 
-    const generalDetails = getConceptAmountDetails({concepts, fountType, ivaPercentage})
+    const detailsWithoutPaymentApplied = getConceptAmountDetails({concepts, fountType, ivaPercentage})
 
-    const paymentPercentage = paymentAmount.div(generalDetails.total);
+    const paymentPercentage = paymentAmount.div(detailsWithoutPaymentApplied.total || 1);
 
-    return applyPayment({
-        details: generalDetails,
+    const detailsWithPaymentApplied = applyPayment({
+        details: detailsWithoutPaymentApplied,
         percentage: paymentPercentage
-    });
+    })
 
+    return {
+        detailsWithPaymentApplied,
+        detailsWithoutPaymentApplied,
+    };
 }
 
 export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult => {
     const {percentage, details: {concepts}} = params;
 
-    let priceWithIva = new Decimal(0.00);
-    let priceWithoutIva = new Decimal(0.00);
-    let discountsWithIva = new Decimal(0.00);
-    let discountsWithoutIva = new Decimal(0.00);
-    let totalTaxBase = new Decimal(0.00);
-    let totalTax = new Decimal(0.00);
-    let total = new Decimal(0.00);
+    let discount = new Decimal(0);
+    let amount = new Decimal(0);
+    let baseTax = new Decimal(0);
+    let tax = new Decimal(0);
+    let total = new Decimal(0);
 
-    concepts.forEach((concept) => {
-        if (concept.priceWithIva) {
-            concept.priceWithIva = concept.priceWithIva?.mul(percentage);
-            priceWithIva = priceWithIva.add(concept.priceWithIva);
+    concepts.forEach((concept: Concept) => {
+        if (concept.amountWithoutCharges) {
+            concept.amountWithoutCharges = concept.amountWithoutCharges?.mul(percentage);
         }
 
-        if (concept.discountsWithIva) {
-            concept.discountsWithIva = concept.discountsWithIva?.mul(percentage);
-            discountsWithIva = discountsWithIva.add(concept.discountsWithIva);
+        if (concept.amountWithCharges) {
+            concept.amountWithCharges = concept.amountWithCharges?.mul(percentage);
         }
 
-        if (concept.discountsWithoutIva) {
-            concept.discountsWithoutIva = concept.discountsWithoutIva?.mul(percentage);
-            discountsWithoutIva = discountsWithoutIva.add(concept.discountsWithoutIva);
+        if (concept.discountWithIVA) {
+            concept.discountWithIVA = concept.discountWithIVA?.mul(percentage);
         }
 
-        if (concept.priceWithoutIva) {
-            concept.priceWithoutIva = concept.priceWithoutIva?.mul(percentage);
-            priceWithoutIva = priceWithoutIva.add(concept.priceWithoutIva);
+        if (concept.discountWithoutIVA) {
+            concept.discountWithoutIVA = concept.discountWithoutIVA?.mul(percentage);
         }
 
-        if (concept.unitPrice) {
-            concept.unitPrice = concept.unitPrice?.mul(percentage);
+        if (concept.chargeWithIVA) {
+            concept.chargeWithIVA = concept.chargeWithIVA?.mul(percentage);
         }
 
-        if (concept.taxBase) {
-            concept.taxBase = concept.taxBase?.mul(percentage);
-            totalTaxBase = totalTaxBase.add(concept.taxBase);
+        if (concept.chargeWithoutIVA) {
+            concept.chargeWithoutIVA = concept.chargeWithoutIVA?.mul(percentage);
         }
 
-        if (concept.tax) {
-            concept.tax = concept.tax?.mul(percentage);
-            totalTax = totalTax.add(concept.tax);
+        if (concept.fiscalPrices?.unitPrice) {
+            concept.fiscalPrices.unitPrice = concept.fiscalPrices?.unitPrice?.mul(percentage);
+        }
+        if (concept.fiscalPrices?.tax) {
+            concept.fiscalPrices.tax = concept.fiscalPrices?.tax?.mul(percentage);
+            tax = tax.add(concept.fiscalPrices.tax);
         }
 
-        if (concept.total) {
-            concept.total = concept.total?.mul(percentage);
-            total = total.add(concept.total);
+        if (concept.fiscalPrices?.total) {
+            concept.fiscalPrices.total = concept.fiscalPrices?.total?.mul(percentage);
+            total = total.add(concept.fiscalPrices.total);
+        }
+
+        if (concept.fiscalPrices?.baseTax) {
+            concept.fiscalPrices.baseTax = concept.fiscalPrices?.baseTax?.mul(percentage);
+            baseTax = baseTax.add(concept.fiscalPrices.baseTax);
+        }
+
+        if (concept.fiscalPrices?.total) {
+            concept.fiscalPrices.total = concept.fiscalPrices?.total?.mul(percentage);
+            total = total.add(concept.fiscalPrices.total);
+        }
+
+        if (concept.fiscalPrices?.amount) {
+            concept.fiscalPrices.amount = concept.fiscalPrices?.amount?.mul(percentage);
+            amount = amount.add(concept.fiscalPrices.amount);
         }
     });
 
     return {
         concepts,
-        priceWithIva,
-        priceWithoutIva,
-        discountsWithIva,
-        discountsWithoutIva,
-        totalTaxBase,
-        totalTax,
+        discount,
+        amount,
+        baseTax,
+        tax,
         total,
     }
 }
@@ -102,91 +115,107 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
 export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): ConceptAmountDetailsResult => {
     const {concepts, fountType, ivaPercentage} = params;
 
-    let priceWithIva = new Decimal(0.00);
-    let priceWithoutIva = new Decimal(0.00);
-    let discountsWithIva = new Decimal(0.00);
-    let discountsWithoutIva = new Decimal(0.00);
-    let totalTaxBase = new Decimal(0.00);
-    let totalTax = new Decimal(0.00);
-    let total = new Decimal(0.00);
+    let discount = new Decimal(0);
+    let amount = new Decimal(0);
+    let baseTax = new Decimal(0);
+    let tax = new Decimal(0);
+    let total = new Decimal(0);
 
     concepts.forEach((concept: Concept) => {
+        concept.fiscalPrices = {
+            unitPrice: new Decimal(0),
+            baseTax: new Decimal(0),
+            tax: new Decimal(0),
+            amount: new Decimal(0),
+            total: new Decimal(0),
+            discount: new Decimal(0),
+        };
+
         const charges = concept.charges.sort((a, b) => a.type - b.type);
 
-        concept.price = new Decimal(concept.price);
+        concept.basePrice = new Decimal(concept.basePrice);
         concept.quantity = new Decimal(concept.quantity);
 
-        const amount = concept.price.mul(concept.quantity).toNumber();
+        concept.amountWithoutCharges = concept.basePrice.mul(concept.quantity);
 
-        const {discounts, surcharges, base, charges: chargesResult } = applyCharges({
-            amount,
+        const {discounts, surcharges, base, charges: chargesResult} = applyCharges({
+            amount: concept.amountWithoutCharges,
             charges,
             fountType
         });
+
+        concept.amountWithCharges = concept.amountWithoutCharges.add(surcharges).sub(discounts);
+
+        concept.discountWithIVA = discount;
+
+        const {
+            amount: discountWithoutIVA,
+        } = getAmountAndTaxFromPriceWithIva({
+            base: discount,
+            ivaPercentage
+        });
+
+        concept.discountWithoutIVA = discountWithoutIVA;
+
+        concept.chargeWithIVA = surcharges;
+
+        const {
+            amount: chargeWithoutIVA,
+        } = getAmountAndTaxFromPriceWithIva({
+            base: surcharges,
+            ivaPercentage
+        });
+
+        concept.chargeWithoutIVA = chargeWithoutIVA;
 
         concept.charges = chargesResult;
 
         const {
             amount: amountWithSurcharges,
-            base: baseWithSurcharges,
         } = getAmountAndTaxFromPriceWithIva({
-            base: base.add(surcharges).toNumber(),
-            ivaPercentage
-        })
-
-        const unitPrice = amountWithSurcharges.div(concept.quantity);
-
-        const {
-            amount: amountDiscounts,
-            base: baseDiscounts,
-        } = getAmountAndTaxFromPriceWithIva({
-            base: discounts.toNumber(),
+            base: base.add(surcharges),
             ivaPercentage
         });
 
-        const taxBase = amountWithSurcharges.sub(amountDiscounts);
+        concept.fiscalPrices.unitPrice = amountWithSurcharges.div(concept.quantity);
+
+        const {
+            amount: amountDiscounts,
+        } = getAmountAndTaxFromPriceWithIva({
+            base: discounts,
+            ivaPercentage
+        });
+
+        concept.fiscalPrices.baseTax = amountWithSurcharges.sub(amountDiscounts);
+        baseTax = baseTax.add(concept.fiscalPrices.baseTax)
 
         const {
             tax: taxTotal,
             amount: amountTotal,
         } = getAmountAndTaxFromPrice({
-            base: taxBase.toNumber(),
+            base: concept.fiscalPrices.baseTax,
             ivaPercentage
         });
 
-        concept.priceWithIva = baseWithSurcharges;
-        priceWithIva = priceWithIva.add(baseWithSurcharges)
+        concept.fiscalPrices.amount = amountWithSurcharges;
+        amount = amount.add(concept.fiscalPrices.amount);
 
-        concept.discountsWithIva = baseDiscounts;
-        discountsWithIva = discountsWithIva.add(baseDiscounts);
+        concept.fiscalPrices.discount = amountDiscounts;
+        discount = discount.add(concept.fiscalPrices.discount);
 
-        concept.discountsWithoutIva = amountDiscounts;
-        discountsWithoutIva = discountsWithoutIva.add(amountDiscounts);
+        concept.fiscalPrices.tax = taxTotal;
+        tax = tax.add(concept.fiscalPrices.tax);
 
-        concept.priceWithoutIva = amountWithSurcharges;
-        priceWithoutIva = priceWithoutIva.add(amountWithSurcharges);
-
-        concept.unitPrice = unitPrice;
-
-        concept.taxBase = taxBase;
-        totalTaxBase = totalTaxBase.add(taxBase);
-
-        concept.tax = taxTotal;
-        totalTax = totalTax.add(taxTotal);
-
-        concept.total = amountTotal;
-        total = total.add(amountTotal);
-
+        concept.fiscalPrices.total = amountTotal;
+        total = total.add(concept.fiscalPrices.total);
     });
 
     return {
         concepts,
-        priceWithIva,
-        priceWithoutIva,
-        discountsWithIva,
-        discountsWithoutIva,
-        totalTaxBase,
-        totalTax,
+        discount,
+        amount,
+        baseTax,
+        tax,
         total,
     }
 }
@@ -214,7 +243,7 @@ export const applyCharges = (params: ApplyChargesParams) => {
 
         chargesSorted.forEach((charge: Charge) => {
             // CHARGE = 50
-            const {amount: chargeAmount} = calculateCharge({charge, base: variantBase.toNumber()});
+            const {amount: chargeAmount} = calculateCharge({charge, base: variantBase});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
                 variantBase = variantBase.sub(chargeAmount);
@@ -308,7 +337,7 @@ export const getPaymentAmount = (params: Payment): Decimal => {
 }
 
 export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
-    const base = new Decimal(params.base);
+    const {base} = params
 
     const percentage = new Decimal(params.ivaPercentage).add(1);
 
@@ -322,7 +351,6 @@ export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
         tax
     }
 }
-
 
 export const getAmountAndTaxFromPrice = (params: AmountAndTaxParams) => {
     const base = new Decimal(params.base);

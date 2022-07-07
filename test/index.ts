@@ -15,7 +15,7 @@ const concepts: Concept[] = [
     {
         id: 104,
         quantity: 1,
-        price: 1200,
+        basePrice: 1200,
         name: 'Mensualidad - junio',
         charges: [
             {
@@ -41,7 +41,7 @@ const concepts: Concept[] = [
     {
         id: 105,
         quantity: 1,
-        price: 1200,
+        basePrice: 1200,
         name: 'Mensualidad - julio',
         charges: [
             {
@@ -67,7 +67,7 @@ const concepts: Concept[] = [
     {
         id: 106,
         quantity: 1,
-        price: 1500,
+        basePrice: 1500,
         name: 'Inscripción ',
         charges: [
             {
