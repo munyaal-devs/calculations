@@ -1,0 +1,23 @@
+{
+  "name": "@munyaal/calculations",
+  "version": "0.1.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "rimraf ./dist && tsc --build",
+    "pretest": "npm run build",
+    "test": "node ./dist/test/index.js",
+    "prepublish": "tsc"
+  },
+  "keywords": [],
+  "author": "Caleb Isaac Mora Diaz",
+  "license": "MIT",
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "decimal.js": "^10.3.1"
+  }
+}
