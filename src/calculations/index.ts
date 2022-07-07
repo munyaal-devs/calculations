@@ -2,14 +2,16 @@ import { Decimal } from 'decimal.js';
 
 import {
     AmountAndTaxParams,
-    ApplyChargesParams, ApplyPayment,
+    ApplyChargesParams,
+    ApplyPayment,
     CalculateChargeParams,
     CalculateInvoicePricesParams,
     Charge,
     ChargeApplicationEnum,
     ChargeTypeEnum,
     Concept,
-    ConceptAmountDetailsParams, ConceptAmountDetailsResult,
+    ConceptAmountDetailsParams,
+    ConceptAmountDetailsResult,
     Payment
 } from '../types';
 
@@ -32,59 +34,52 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
 export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult => {
     const {percentage, details: {concepts}} = params;
 
-    let priceWithIva = new Decimal(0);
-    let priceWithoutIva = new Decimal(0);
-    let discountsWithIva = new Decimal(0);
-    let discountsWithoutIva = new Decimal(0);
-    let totalTaxBase = new Decimal(0);
-    let totalTax = new Decimal(0);
-    let total = new Decimal(0);
+    let priceWithIva = new Decimal(0.00);
+    let priceWithoutIva = new Decimal(0.00);
+    let discountsWithIva = new Decimal(0.00);
+    let discountsWithoutIva = new Decimal(0.00);
+    let totalTaxBase = new Decimal(0.00);
+    let totalTax = new Decimal(0.00);
+    let total = new Decimal(0.00);
 
     concepts.forEach((concept) => {
         if (concept.priceWithIva) {
-            priceWithIva = new Decimal(priceWithIva.add(concept.priceWithIva?.mul(percentage)).toFixed(2));
-
-            concept.priceWithIva = new Decimal(concept.priceWithIva?.mul(percentage).toFixed(2));
+            concept.priceWithIva = concept.priceWithIva?.mul(percentage);
+            priceWithIva = priceWithIva.add(concept.priceWithIva);
         }
 
         if (concept.discountsWithIva) {
-            discountsWithIva = new Decimal(discountsWithIva.add(concept.discountsWithIva?.mul(percentage)).toFixed(2));
-
-            concept.discountsWithIva = new Decimal(concept.discountsWithIva?.mul(percentage).toFixed(2));
+            concept.discountsWithIva = concept.discountsWithIva?.mul(percentage);
+            discountsWithIva = discountsWithIva.add(concept.discountsWithIva);
         }
 
         if (concept.discountsWithoutIva) {
-            discountsWithoutIva = new Decimal(discountsWithoutIva.add(concept.discountsWithoutIva?.mul(percentage)).toFixed(2));
-
-            concept.discountsWithoutIva = new Decimal(concept.discountsWithoutIva?.mul(percentage).toFixed(2));
+            concept.discountsWithoutIva = concept.discountsWithoutIva?.mul(percentage);
+            discountsWithoutIva = discountsWithoutIva.add(concept.discountsWithoutIva);
         }
 
         if (concept.priceWithoutIva) {
-            priceWithoutIva = new Decimal(priceWithoutIva.add(concept.priceWithoutIva?.mul(percentage)).toFixed(2));
-
-            concept.priceWithoutIva = new Decimal(concept.priceWithoutIva?.mul(percentage).toFixed(2));
+            concept.priceWithoutIva = concept.priceWithoutIva?.mul(percentage);
+            priceWithoutIva = priceWithoutIva.add(concept.priceWithoutIva);
         }
 
         if (concept.unitPrice) {
-            concept.unitPrice = new Decimal(concept.unitPrice?.mul(percentage).toFixed(2));
+            concept.unitPrice = concept.unitPrice?.mul(percentage);
         }
 
         if (concept.taxBase) {
-            totalTaxBase = new Decimal(totalTaxBase.add(concept.taxBase?.mul(percentage)).toFixed(2))
-
-            concept.taxBase = new Decimal(concept.taxBase?.mul(percentage).toFixed(2));
+            concept.taxBase = concept.taxBase?.mul(percentage);
+            totalTaxBase = totalTaxBase.add(concept.taxBase);
         }
 
         if (concept.tax) {
-            totalTax = new Decimal(totalTax.add(concept.tax?.mul(percentage)).toFixed(2));
-
-            concept.tax = new Decimal(concept.tax?.mul(percentage).toFixed(2));
+            concept.tax = concept.tax?.mul(percentage);
+            totalTax = totalTax.add(concept.tax);
         }
 
         if (concept.total) {
-            total = new Decimal(total.add(concept.total?.mul(percentage)).toFixed(2));
-
-            concept.total = new Decimal(concept.total?.mul(percentage).toFixed(2));
+            concept.total = concept.total?.mul(percentage);
+            total = total.add(concept.total);
         }
     });
 
@@ -106,13 +101,13 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
 export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): ConceptAmountDetailsResult => {
     const {concepts, fountType, ivaPercentage} = params;
 
-    let priceWithIva = new Decimal(0);
-    let priceWithoutIva = new Decimal(0);
-    let discountsWithIva = new Decimal(0);
-    let discountsWithoutIva = new Decimal(0);
-    let totalTaxBase = new Decimal(0);
-    let totalTax = new Decimal(0);
-    let total = new Decimal(0);
+    let priceWithIva = new Decimal(0.00);
+    let priceWithoutIva = new Decimal(0.00);
+    let discountsWithIva = new Decimal(0.00);
+    let discountsWithoutIva = new Decimal(0.00);
+    let totalTaxBase = new Decimal(0.00);
+    let totalTax = new Decimal(0.00);
+    let total = new Decimal(0.00);
 
     concepts.forEach((concept: Concept) => {
         const charges = concept.charges.sort((a, b) => a.type - b.type);
@@ -156,42 +151,42 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
             ivaPercentage
         });
 
-        priceWithIva = new Decimal(priceWithIva.add(baseWithSurcharges))
-        concept.priceWithIva = new Decimal(baseWithSurcharges.toFixed(2));
+        concept.priceWithIva = baseWithSurcharges;
+        priceWithIva = priceWithIva.add(baseWithSurcharges)
 
-        discountsWithIva = new Decimal(discountsWithIva.add(baseDiscounts));
-        concept.discountsWithIva = new Decimal(baseDiscounts.toFixed(2));
+        concept.discountsWithIva = baseDiscounts;
+        discountsWithIva = discountsWithIva.add(baseDiscounts);
 
-        concept.quantity = new Decimal(quantity.toFixed(2));
+        concept.quantity = quantity;
 
-        discountsWithoutIva = new Decimal(discountsWithoutIva.add(amountDiscounts));
-        concept.discountsWithoutIva = new Decimal(amountDiscounts.toFixed(2));
+        concept.discountsWithoutIva = amountDiscounts;
+        discountsWithoutIva = discountsWithoutIva.add(amountDiscounts);
 
-        priceWithoutIva = new Decimal(priceWithoutIva.add(amountWithSurcharges));
-        concept.priceWithoutIva = new Decimal(amountWithSurcharges.toFixed(2));
+        concept.priceWithoutIva = amountWithSurcharges;
+        priceWithoutIva = priceWithoutIva.add(amountWithSurcharges);
 
-        concept.unitPrice = new Decimal(unitPrice.toFixed(2));
+        concept.unitPrice = unitPrice;
 
-        totalTaxBase = new Decimal(totalTaxBase.add(taxBase));
-        concept.taxBase = new Decimal(taxBase.toFixed(2));
+        concept.taxBase = taxBase;
+        totalTaxBase = totalTaxBase.add(taxBase);
 
-        totalTax = new Decimal(totalTax.add(taxTotal));
-        concept.tax = new Decimal(taxTotal.toFixed(2));
+        concept.tax = taxTotal;
+        totalTax = totalTax.add(taxTotal);
 
-        total = new Decimal(total.add(amountTotal));
-        concept.total = new Decimal(amountTotal.toFixed(2));
+        concept.total = amountTotal;
+        total = total.add(amountTotal);
 
     });
 
     return {
         concepts,
-        priceWithIva: new Decimal(priceWithIva.toFixed(2)),
-        priceWithoutIva: new Decimal(priceWithoutIva.toFixed(2)),
-        discountsWithIva: new Decimal(discountsWithIva.toFixed(2)),
-        discountsWithoutIva: new Decimal(discountsWithoutIva.toFixed(2)),
-        totalTaxBase: new Decimal(totalTaxBase.toFixed(2)),
-        totalTax: new Decimal(totalTax.toFixed(2)),
-        total: new Decimal(total.toFixed(2)),
+        priceWithIva,
+        priceWithoutIva,
+        discountsWithIva,
+        discountsWithoutIva,
+        totalTaxBase,
+        totalTax,
+        total,
     }
 }
 

@@ -1,6 +1,4 @@
 import {
-    ChargeApplicationEnum,
-    ChargeTypeEnum,
     Concept,
     FountTypeEnum,
     Payment,
@@ -9,104 +7,33 @@ import {
 } from '../src';
 
 const payment: Payment = {
-    amount: 10000,
-    change: 222.4
+    amount: 2000,
+    change: 0.000000
 };
 
 const concepts: Concept[] = [
     {
-        id: 1,
-        name: 'AMORTIGUADOR DELANTERO FORD F250 F350 3.4 07-14 835190',
-        price: 975,
-        quantity: 2,
-        charges: [
-            {
-                amount: 5,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 5,
-                type: ChargeTypeEnum.SURCHARGES,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-        ]
-    },
-    {
-        id: 2,
-        name: 'AMORTIGUADOR TRASERO FORD F150-F350 RANGER 97-07 835054',
-        price: 904,
-        quantity: 2,
-        charges: [
-            {
-                amount: 5,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 5,
-                type: ChargeTypeEnum.SURCHARGES,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-        ]
-    },
-    {
-        id: 3,
-        name: 'REPSET FORD F250 F350 F 450 SUPER DUTY 5.4 99-14 630306000',
-        price: 6890,
+        id: 104,
         quantity: 1,
-        charges: [
-            {
-                amount: 5,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 5,
-                type: ChargeTypeEnum.SURCHARGES,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-        ]
+        price: 1200,
+        name: 'Mensualidad - junio',
+        charges: [],
     },
     {
-        id: 4,
-        name: 'ACEITE ROSHFRANS SAE 250 LT RST250LT',
-        price: 108,
-        quantity: 2,
-        charges: [
-            {
-                amount: 5,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 5,
-                type: ChargeTypeEnum.SURCHARGES,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE
-            },
-        ]
+        id: 105,
+        quantity: 1,
+        price: 1200,
+        name: 'Mensualidad - julio',
+        charges: [],
     },
-];
+    {
+        id: 106,
+        quantity: 1,
+        price: 1500,
+        name: 'Inscripción ',
+        charges: [],
+    }
+]
 
 
 const traditional = calculateInvoicePrices({
@@ -116,14 +43,31 @@ const traditional = calculateInvoicePrices({
     ivaPercentage: TaxPercentageEnum.T16
 });
 
-console.log(`TRADICIONAL: ${JSON.stringify(traditional, null, 3)}`);
+console.log(`RESULTADOS: ================ \n`);
 
-const discountOnDiscount = calculateInvoicePrices({
-    payment,
-    concepts,
-    fountType: FountTypeEnum.DISCOUNT_ON_DISCOUNT,
-    ivaPercentage: TaxPercentageEnum.T16
-});
+console.log(`CONCEPTOS: ================ \n`);
 
-console.log(`DESCUENTO SOBRE DESCUENTO: ${JSON.stringify(discountOnDiscount, null, 3)}`);
+traditional.concepts.forEach((value) => {
+    console.log('Producto / Servicio: ', value.name);
+    console.log('Precio unitario:     ', value.unitPrice?.toFixed(2));
+    console.log('Cantidad:            ', value.quantity.toFixed(6));
+    console.log('Precio con IVA:      ', value.priceWithIva?.toFixed(2));
+    console.log('Precio sin IVA:      ', value.priceWithoutIva?.toFixed(2));
+    console.log('Descuentos con IVA:  ', value.discountsWithIva?.toFixed(2));
+    console.log('Descuentos sin IVA:  ', value.discountsWithoutIva?.toFixed(2));
+    console.log('Base de impuestos:   ', value.taxBase?.toFixed(2));
+    console.log('Impuestos:           ', value.tax?.toFixed(2));
+    console.log('Total:               ', value.total?.toFixed(2));
 
+    console.log('\n');
+})
+
+console.log(`DETALLES DE VENTA: ================ \n`);
+
+console.log('Precio con IVA:      ', traditional.priceWithIva.toFixed(2));
+console.log('Precio sin IVA:      ', traditional.priceWithoutIva.toFixed(2));
+console.log('Descuentos con IVA:  ', traditional.discountsWithIva.toFixed(2));
+console.log('Descuentos sin IVA:  ', traditional.discountsWithoutIva.toFixed(2));
+console.log('Base de impuestos:   ', traditional.totalTaxBase.toFixed(2));
+console.log('Impuestos:           ', traditional.totalTax.toFixed(2));
+console.log('Total:               ', traditional.total.toFixed(2));
