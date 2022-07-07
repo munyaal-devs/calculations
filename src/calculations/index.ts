@@ -73,6 +73,7 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
         if (concept.fiscalPrices?.unitPrice) {
             concept.fiscalPrices.unitPrice = concept.fiscalPrices?.unitPrice?.mul(percentage);
         }
+
         if (concept.fiscalPrices?.tax) {
             concept.fiscalPrices.tax = concept.fiscalPrices?.tax?.mul(percentage);
             tax = tax.add(concept.fiscalPrices.tax);
@@ -88,9 +89,9 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
             baseTax = baseTax.add(concept.fiscalPrices.baseTax);
         }
 
-        if (concept.fiscalPrices?.total) {
-            concept.fiscalPrices.total = concept.fiscalPrices?.total?.mul(percentage);
-            total = total.add(concept.fiscalPrices.total);
+        if (concept.fiscalPrices?.discount) {
+            concept.fiscalPrices.discount = concept.fiscalPrices?.discount?.mul(percentage);
+            discount = discount.add(concept.fiscalPrices.discount);
         }
 
         if (concept.fiscalPrices?.amount) {

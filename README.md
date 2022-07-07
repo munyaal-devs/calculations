@@ -1,3 +1,19 @@
+# @munyaal/calculations
+
+Esta es una librería para realizar las operaciones comunes de un punto de venta, así como las operaciones para un recibo
+o una factura fiscal
+
+### Características
+
+- Especifica el porcentaje exacto de los impuestos.
+- Especifica un arreglo de cargos
+  - Descuentos
+  - Cargos
+  - Porcentaje
+  - Cantidad
+- Continúa haciendo operaciones
+- Se exporta la clase 
+
 ### Estructura básica de concepto
 
 ```typescript
