@@ -1,13 +1,15 @@
 import {
+    calculateInvoicePrices,
+    ChargeApplicationEnum,
+    ChargeTypeEnum,
     Concept,
     FountTypeEnum,
     Payment,
     TaxPercentageEnum,
-    calculateInvoicePrices, ChargeTypeEnum, ChargeApplicationEnum,
 } from '../src';
 
 const payment: Payment = {
-    amount: 2000.00,
+    amount: 300,
     change: 0.000000
 };
 
@@ -15,28 +17,27 @@ const concepts: Concept[] = [
     {
         id: 104,
         quantity: 1,
-        basePrice: 1200,
+        basePrice: 720,
         name: 'Mensualidad - junio',
         charges: [
-
-        ],
-    },
-    {
-        id: 105,
-        quantity: 1,
-        basePrice: 1200,
-        name: 'Mensualidad - julio',
-        charges: [
-
-        ],
-    },
-    {
-        id: 106,
-        quantity: 1,
-        basePrice: 1500,
-        name: 'Inscripción ',
-        charges: [
-
+            {
+                amount: 50,
+                type: ChargeTypeEnum.DISCOUNTS,
+                application: ChargeApplicationEnum.PERCENTAGE,
+                order: 1,
+            },
+            {
+                amount: 10,
+                type: ChargeTypeEnum.DISCOUNTS,
+                application: ChargeApplicationEnum.PERCENTAGE,
+                order: 2,
+            },
+            {
+                amount: 10,
+                type: ChargeTypeEnum.SURCHARGES,
+                application: ChargeApplicationEnum.PERCENTAGE,
+                order: 3,
+            }
         ],
     }
 ]
@@ -44,8 +45,8 @@ const concepts: Concept[] = [
 const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
     payment,
     concepts,
-    fountType: FountTypeEnum.TRADITIONAL,
-    ivaPercentage: TaxPercentageEnum.T0
+    fountType: FountTypeEnum.DISCOUNT_ON_DISCOUNT,
+    ivaPercentage: TaxPercentageEnum.T16
 });
 
 console.log(`RESULTADOS: ================ \n`);
