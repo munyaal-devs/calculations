@@ -3,7 +3,7 @@ import {
     FountTypeEnum,
     Payment,
     TaxPercentageEnum,
-    calculateInvoicePrices,
+    calculateInvoicePrices, ChargeTypeEnum, ChargeApplicationEnum,
 } from '../src';
 
 const payment: Payment = {
@@ -45,7 +45,7 @@ const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
     payment,
     concepts,
     fountType: FountTypeEnum.TRADITIONAL,
-    ivaPercentage: TaxPercentageEnum.T16
+    ivaPercentage: TaxPercentageEnum.T0
 });
 
 console.log(`RESULTADOS: ================ \n`);
@@ -55,12 +55,12 @@ console.log(`CONCEPTOS: ================ \n`);
 traditional.concepts.forEach((value) => {
     console.log('Producto / Servicio: ', value.name);
     console.log('Cantidad:            ', value.quantity.toFixed(6));
-    console.log('Precio unitario:     ', value.fiscalPrices?.unitPrice?.toFixed(2));
-    console.log('Importe:             ', value.fiscalPrices?.amount?.toFixed(2));
-    console.log('Descuento:           ', value.fiscalPrices?.discount?.toFixed(2));
-    console.log('Base de impuestos:   ', value.fiscalPrices?.baseTax?.toFixed(2));
-    console.log('Impuestos:           ', value.fiscalPrices?.tax?.toFixed(2));
-    console.log('Total:               ', value.fiscalPrices?.total?.toFixed(2));
+    console.log('Precio unitario:     ', value.fiscalPrices?.unitPrice?.toFixed(3));
+    console.log('Importe:             ', value.fiscalPrices?.amount?.toFixed(3));
+    console.log('Descuento:           ', value.fiscalPrices?.discount?.toFixed(3));
+    console.log('Base de impuestos:   ', value.fiscalPrices?.baseTax?.toFixed(3));
+    console.log('Impuestos:           ', value.fiscalPrices?.tax?.toFixed(3));
+    console.log('Total:               ', value.fiscalPrices?.total?.toFixed(3));
     console.log('\n');
 })
 

@@ -123,6 +123,7 @@ export type CalculateInvoicePricesParams = {
 export type ApplyPayment = {
     details: ConceptAmountDetailsResult;
     percentage: Decimal;
+    ivaPercentage: TaxPercentage;
 }
 
 /*

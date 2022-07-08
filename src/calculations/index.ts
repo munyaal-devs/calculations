@@ -27,7 +27,8 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
 
     const detailsWithPaymentApplied = applyPayment({
         details: detailsWithoutPaymentApplied,
-        percentage: paymentPercentage
+        percentage: paymentPercentage,
+        ivaPercentage
     })
 
     return {
@@ -37,15 +38,17 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
 }
 
 export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult => {
-    const {percentage, details: {concepts}} = params;
+    const {percentage, details: {concepts}, ivaPercentage} = params;
 
     let discount = new Decimal(0);
     let amount = new Decimal(0);
-    let baseTax = new Decimal(0);
-    let tax = new Decimal(0);
-    let total = new Decimal(0);
 
     concepts.forEach((concept: Concept) => {
+        concept.charges.forEach((charge: Charge) => {
+            charge.chargeAmount = charge.chargeAmount?.mul(percentage);
+        })
+
+
         if (concept.amountWithoutCharges) {
             concept.amountWithoutCharges = concept.amountWithoutCharges?.mul(percentage);
         }
@@ -74,21 +77,6 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
             concept.fiscalPrices.unitPrice = concept.fiscalPrices?.unitPrice?.mul(percentage);
         }
 
-        if (concept.fiscalPrices?.tax) {
-            concept.fiscalPrices.tax = concept.fiscalPrices?.tax?.mul(percentage);
-            tax = tax.add(concept.fiscalPrices.tax);
-        }
-
-        if (concept.fiscalPrices?.total) {
-            concept.fiscalPrices.total = concept.fiscalPrices?.total?.mul(percentage);
-            total = total.add(concept.fiscalPrices.total);
-        }
-
-        if (concept.fiscalPrices?.baseTax) {
-            concept.fiscalPrices.baseTax = concept.fiscalPrices?.baseTax?.mul(percentage);
-            baseTax = baseTax.add(concept.fiscalPrices.baseTax);
-        }
-
         if (concept.fiscalPrices?.discount) {
             concept.fiscalPrices.discount = concept.fiscalPrices?.discount?.mul(percentage);
             discount = discount.add(concept.fiscalPrices.discount);
@@ -98,7 +86,29 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
             concept.fiscalPrices.amount = concept.fiscalPrices?.amount?.mul(percentage);
             amount = amount.add(concept.fiscalPrices.amount);
         }
+
+        if (concept.fiscalPrices?.tax) {
+            concept.fiscalPrices.tax = concept.fiscalPrices?.tax?.mul(percentage);
+        }
+
+        if (concept.fiscalPrices?.total) {
+            concept.fiscalPrices.total = concept.fiscalPrices?.total?.mul(percentage);
+        }
+
+        if (concept.fiscalPrices?.baseTax) {
+            concept.fiscalPrices.baseTax = concept.fiscalPrices?.baseTax?.mul(percentage);
+        }
     });
+
+    const baseTax = amount.sub(discount);
+
+    const {
+        tax,
+        amount: total
+    } = getAmountAndTaxFromPrice({
+        base: baseTax,
+        ivaPercentage
+    })
 
     return {
         concepts,
@@ -118,9 +128,6 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
 
     let discount = new Decimal(0);
     let amount = new Decimal(0);
-    let baseTax = new Decimal(0);
-    let tax = new Decimal(0);
-    let total = new Decimal(0);
 
     concepts.forEach((concept: Concept) => {
         concept.fiscalPrices = {
@@ -188,7 +195,6 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
         });
 
         concept.fiscalPrices.baseTax = amountWithSurcharges.sub(amountDiscounts);
-        baseTax = baseTax.add(concept.fiscalPrices.baseTax)
 
         const {
             tax: taxTotal,
@@ -205,11 +211,19 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
         discount = discount.add(concept.fiscalPrices.discount);
 
         concept.fiscalPrices.tax = taxTotal;
-        tax = tax.add(concept.fiscalPrices.tax);
 
         concept.fiscalPrices.total = amountTotal;
-        total = total.add(concept.fiscalPrices.total);
-    });
+    })
+
+    const baseTax = amount.sub(discount);
+
+    const {
+        tax,
+        amount: total
+    } = getAmountAndTaxFromPrice({
+        base: baseTax,
+        ivaPercentage
+    })
 
     return {
         concepts,
