@@ -16,6 +16,11 @@ import {
     Payment
 } from '../types';
 
+Decimal.set({
+    precision: 20,
+    rounding: Decimal.ROUND_HALF_EVEN
+})
+
 export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => {
     const {payment, concepts, fountType, ivaPercentage} = params;
 

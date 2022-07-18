@@ -9,37 +9,18 @@ import {
 } from '../src';
 
 const payment: Payment = {
-    amount: 300,
+    amount: 882,
     change: 0.000000
 };
 
 const concepts: Concept[] = [
     {
-        id: 104,
+        id: 1,
         quantity: 1,
-        basePrice: 720,
-        name: 'Mensualidad - junio',
-        charges: [
-            {
-                amount: 50,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE,
-                order: 1,
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.DISCOUNTS,
-                application: ChargeApplicationEnum.PERCENTAGE,
-                order: 2,
-            },
-            {
-                amount: 10,
-                type: ChargeTypeEnum.SURCHARGES,
-                application: ChargeApplicationEnum.PERCENTAGE,
-                order: 3,
-            }
-        ],
-    }
+        basePrice: 882,
+        name: 'Bobina',
+        charges: [],
+    },
 ]
 
 const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
@@ -50,3 +31,7 @@ const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
 });
 
 console.log(JSON.stringify(traditional, null, 3))
+
+console.log(traditional.amount?.toFixed(2))
+console.log(traditional.total?.toFixed(2))
+console.log(traditional.tax?.toFixed(2))
