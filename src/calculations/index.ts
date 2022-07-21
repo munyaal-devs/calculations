@@ -17,7 +17,7 @@ import {
 } from '../types';
 
 Decimal.set({
-    precision: 20,
+    precision: 12,
     rounding: Decimal.ROUND_HALF_EVEN
 })
 
