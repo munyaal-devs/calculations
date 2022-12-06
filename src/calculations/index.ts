@@ -5,6 +5,7 @@ import {
     ApplyChargesParams,
     ApplyPayment,
     CalculateChargeParams,
+    CalculateInvoiceParams,
     CalculateInvoicePricesParams,
     Charge,
     ChargeApplicationEnum,
@@ -21,12 +22,18 @@ Decimal.set({
     rounding: Decimal.ROUND_HALF_EVEN
 })
 
+export const calculateInvoice = (params: CalculateInvoiceParams) => {
+    const {concepts, fountType, ivaPercentage} = params;
+
+    return getConceptAmountDetails({concepts, fountType, ivaPercentage})
+}
+
 export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => {
     const {payment, concepts, fountType, ivaPercentage} = params;
 
-    const paymentAmount = getPaymentAmount(payment);
+    const detailsWithoutPaymentApplied = calculateInvoice({concepts, fountType, ivaPercentage})
 
-    const detailsWithoutPaymentApplied = getConceptAmountDetails({concepts, fountType, ivaPercentage})
+    const paymentAmount = getPaymentAmount(payment);
 
     const paymentPercentage = paymentAmount.div(detailsWithoutPaymentApplied.total || 1);
 
@@ -43,16 +50,19 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
 }
 
 export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult => {
-    const {percentage, details: {concepts}, ivaPercentage} = params;
+    const {percentage, details, ivaPercentage} = params;
+
+    const concepts: Concept[] = [];
 
     let discount = new Decimal(0);
     let amount = new Decimal(0);
 
-    concepts.forEach((concept: Concept) => {
+    details.concepts.map((value) => {
+        const concept = Object.assign({}, {...value});
+
         concept.charges.forEach((charge: Charge) => {
             charge.chargeAmount = charge.chargeAmount?.mul(percentage);
         })
-
 
         if (concept.amountWithoutCharges) {
             concept.amountWithoutCharges = concept.amountWithoutCharges?.mul(percentage);
@@ -102,6 +112,8 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
             concept.fiscalPrices.tax = tax
             concept.fiscalPrices.total = total
         }
+
+        concepts.push(concept)
     });
 
     const baseTax = amount.sub(discount);
@@ -158,12 +170,12 @@ export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): Con
 
         concept.amountWithCharges = concept.amountWithoutCharges.add(surcharges).sub(discounts);
 
-        concept.discountWithIVA = discount;
+        concept.discountWithIVA = discounts;
 
         const {
             amount: discountWithoutIVA,
         } = getAmountAndTaxFromPriceWithIva({
-            base: discount,
+            base: discounts,
             ivaPercentage
         });
 

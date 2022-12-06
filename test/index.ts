@@ -10,12 +10,12 @@ import {
 } from '../src';
 
 const payment: Payment = {
-    amount: 5000.00,
-    change: 320.00
+    amount: 0,
+    change: 0
 };
 
 const charge: Charge = {
-    amount: 10,
+    amount: 5,
     type: ChargeTypeEnum.DISCOUNTS,
     application: ChargeApplicationEnum.PERCENTAGE,
 }
@@ -23,10 +23,10 @@ const charge: Charge = {
 const concepts: Concept[] = [
     {
         id: 1,
-        quantity: 1,
-        basePrice: 5200.00,
+        quantity: 6,
+        basePrice: 599.00,
         name: 'Bobina de cable UTP cat6 uso rudo',
-        charges: [charge],
+        charges: [charge, charge],
     },
 ]
 
@@ -36,9 +36,6 @@ const result = calculateInvoicePrices({
     fountType: FountTypeEnum.TRADITIONAL,
     ivaPercentage: TaxPercentageEnum.T16
 });
-
-console.log(JSON.stringify(result, null, 3))
-
 //
 // traditional.concepts.forEach((value) => {
 //     console.log(`Producto - ${value.name}`);

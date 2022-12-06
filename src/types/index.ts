@@ -50,13 +50,14 @@ export enum ChargeApplicationEnum {
 * @type - Tipo de cargo
 * @application - Tipo de aplicación
 * */
-export type Charge = {
+export type Charge<T = any> = {
     id?: string | number;
     order?: number;
     chargeAmount?: Decimal;
     amount: number;
     type: ChargeTypeEnum;
     application: ChargeApplicationEnum;
+    data?: T;
 }
 
 /*
@@ -100,11 +101,27 @@ export type Prices = {
 * @quantity - Cantidad
 * @charges - Cantidad
 * */
-export type Concept = {
+export type Concept<T = any> = Prices & {
     id: number | string;
     name: string;
     charges: Charge[];
-} & Prices
+    data?: T;
+}
+
+/*
+* Parámetros para calcular los precios en factura
+*
+* @payment - Detalles del pago;
+* @concepts - Arreglo de conceptos con sus cargos
+* @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
+* @ivaPercentage - Porcentaje de iva para aplicar - 0.16
+* */
+export type CalculateInvoiceParams = {
+    concepts: Concept[];
+    fountType: FountTypeEnum;
+    ivaPercentage: TaxPercentage;
+}
+
 /*
 * Parámetros para calcular los precios en factura
 *
