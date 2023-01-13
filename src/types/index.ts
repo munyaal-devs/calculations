@@ -116,8 +116,8 @@ export type Concept<T = any> = Prices & {
 * @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
 * @ivaPercentage - Porcentaje de iva para aplicar - 0.16
 * */
-export type CalculateInvoiceParams = {
-    concepts: Concept[];
+export type CalculateInvoiceParams<T = any> = {
+    concepts: Concept<T>[];
     fountType: FountTypeEnum;
     ivaPercentage: TaxPercentage;
 }
@@ -130,15 +130,15 @@ export type CalculateInvoiceParams = {
 * @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
 * @ivaPercentage - Porcentaje de iva para aplicar - 0.16
 * */
-export type CalculateInvoicePricesParams = {
+export type CalculateInvoicePricesParams<T = any> = {
     payment: Payment;
-    concepts: Concept[];
+    concepts: Concept<T>[];
     fountType: FountTypeEnum;
     ivaPercentage: TaxPercentage;
 }
 
-export type ApplyPayment = {
-    details: ConceptAmountDetailsResult;
+export type ApplyPayment<T = any> = {
+    details: ConceptAmountDetailsResult<T>;
     percentage: Decimal;
     ivaPercentage: TaxPercentage;
 }
@@ -149,25 +149,25 @@ export type ApplyPayment = {
 * @concepts - Arreglo de conceptos con sus cargos
 * @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
 * */
-export type ConceptAmountDetailsParams = {
-    concepts: Concept[];
+export type ConceptAmountDetailsParams<T = any> = {
+    concepts: Concept<T>[];
     fountType: FountTypeEnum;
     ivaPercentage: TaxPercentage;
 }
 
-export type ConceptAmountDetailsResult = {
-    concepts: Concept[];
+export type ConceptAmountDetailsResult<T = any> = {
+    concepts: Concept<T>[];
 } & FiscalPrices
 
-export type ApplyChargesParams = {
+export type ApplyChargesParams<T = any> = {
     fountType: FountTypeEnum;
-    charges: Charge[];
+    charges: Charge<T>[];
     amount: Decimal;
 }
 
-export type CalculateChargeParams = {
+export type CalculateChargeParams<T = any> = {
     base: Decimal;
-    charge: Charge;
+    charge: Charge<T>;
 }
 
 export type AmountAndTaxParams = {

@@ -22,22 +22,22 @@ Decimal.set({
     rounding: Decimal.ROUND_HALF_EVEN
 })
 
-export const calculateInvoice = (params: CalculateInvoiceParams) => {
+export const calculateInvoice = <T = any>(params: CalculateInvoiceParams) => {
     const {concepts, fountType, ivaPercentage} = params;
 
-    return getConceptAmountDetails({concepts, fountType, ivaPercentage})
+    return getConceptAmountDetails<T>({concepts, fountType, ivaPercentage})
 }
 
-export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => {
+export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesParams) => {
     const {payment, concepts, fountType, ivaPercentage} = params;
 
-    const detailsWithoutPaymentApplied = calculateInvoice({concepts, fountType, ivaPercentage})
+    const detailsWithoutPaymentApplied = calculateInvoice<T>({concepts, fountType, ivaPercentage})
 
     const paymentAmount = getPaymentAmount(payment);
 
     const paymentPercentage = paymentAmount.div(detailsWithoutPaymentApplied.total || 1);
 
-    const detailsWithPaymentApplied = applyPayment({
+    const detailsWithPaymentApplied = applyPayment<T>({
         details: detailsWithoutPaymentApplied,
         percentage: paymentPercentage,
         ivaPercentage
@@ -49,15 +49,15 @@ export const calculateInvoicePrices = (params: CalculateInvoicePricesParams) => 
     };
 }
 
-export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult => {
+export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetailsResult<T> => {
     const {percentage, details, ivaPercentage} = params;
 
-    const concepts: Concept[] = [];
+    const concepts: Concept<T>[] = [];
 
     let discount = new Decimal(0);
     let amount = new Decimal(0);
 
-    details.concepts.map((value) => {
+    details.concepts.map((value: Concept<T>) => {
         const concept = Object.assign({}, {...value});
 
         concept.charges.forEach((charge: Charge) => {
@@ -139,7 +139,7 @@ export const applyPayment = (params: ApplyPayment): ConceptAmountDetailsResult =
 /*
 * Obtiene los detalles de los conceptos
 * */
-export const getConceptAmountDetails = (params: ConceptAmountDetailsParams): ConceptAmountDetailsResult => {
+export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T> => {
     const {concepts, fountType, ivaPercentage} = params;
 
     let discount = new Decimal(0);
