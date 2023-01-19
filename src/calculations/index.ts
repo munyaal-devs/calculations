@@ -17,11 +17,6 @@ import {
     Payment
 } from '../types';
 
-Decimal.set({
-    precision: 20,
-    rounding: Decimal.ROUND_HALF_EVEN
-})
-
 export const calculateInvoice = <T = any>(params: CalculateInvoiceParams) => {
     const {concepts, fountType, ivaPercentage} = params;
 
@@ -31,17 +26,22 @@ export const calculateInvoice = <T = any>(params: CalculateInvoiceParams) => {
 export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesParams) => {
     const {payment, concepts, fountType, ivaPercentage} = params;
 
-    const detailsWithoutPaymentApplied = calculateInvoice<T>({concepts, fountType, ivaPercentage})
+    const detailsWithoutPaymentApplied = calculateInvoice<T>({concepts, fountType, ivaPercentage});
 
     const paymentAmount = getPaymentAmount(payment);
 
     const paymentPercentage = paymentAmount.div(detailsWithoutPaymentApplied.total || 1);
 
-    const detailsWithPaymentApplied = applyPayment<T>({
-        details: detailsWithoutPaymentApplied,
-        percentage: paymentPercentage,
-        ivaPercentage
-    })
+    let detailsWithPaymentApplied = detailsWithoutPaymentApplied;
+
+    if (!!paymentPercentage.toNumber()) {
+        detailsWithPaymentApplied = applyPayment<T>({
+            details: detailsWithoutPaymentApplied,
+            percentage: paymentPercentage,
+            ivaPercentage
+        })
+    }
+
 
     return {
         detailsWithPaymentApplied,
@@ -50,7 +50,9 @@ export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesPa
 }
 
 export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetailsResult<T> => {
-    const {percentage, details, ivaPercentage} = params;
+    const {percentage, details: detailsWithoutPayment, ivaPercentage} = params;
+
+    const details = Object.assign({}, detailsWithoutPayment)
 
     const concepts: Concept<T>[] = [];
 
@@ -92,7 +94,7 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
             concept.fiscalPrices.unitPrice = concept.fiscalPrices?.unitPrice?.mul(percentage);
         }
 
-        if (concept.fiscalPrices?.amount && concept.fiscalPrices?.discount) {
+        if (typeof concept.fiscalPrices?.amount !== 'undefined' && typeof concept.fiscalPrices?.discount !== 'undefined') {
             concept.fiscalPrices.discount = concept.fiscalPrices?.discount?.mul(percentage);
             discount = discount.add(concept.fiscalPrices.discount);
 
@@ -157,10 +159,10 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
 
         const charges = concept.charges.sort((a, b) => a.type - b.type);
 
-        concept.basePrice = new Decimal(concept.basePrice);
-        concept.quantity = new Decimal(concept.quantity);
+        concept.basePrice = new Decimal(new Decimal(concept.basePrice).toFixed(6));
+        concept.quantity = new Decimal(new Decimal(concept.quantity).toFixed(6));
 
-        concept.amountWithoutCharges = concept.basePrice.mul(concept.quantity);
+        concept.amountWithoutCharges = new Decimal(concept.basePrice.mul(concept.quantity).toFixed(6));
 
         const {discounts, surcharges, base, charges: chargesResult} = applyCharges({
             amount: concept.amountWithoutCharges,
@@ -168,9 +170,9 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             fountType
         });
 
-        concept.amountWithCharges = concept.amountWithoutCharges.add(surcharges).sub(discounts);
+        concept.amountWithCharges = new Decimal(concept.amountWithoutCharges.add(surcharges).sub(discounts).toFixed(6));
 
-        concept.discountWithIVA = discounts;
+        concept.discountWithIVA = new Decimal(discounts.toFixed(6));
 
         const {
             amount: discountWithoutIVA,
@@ -179,9 +181,9 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             ivaPercentage
         });
 
-        concept.discountWithoutIVA = discountWithoutIVA;
+        concept.discountWithoutIVA = new Decimal(discountWithoutIVA.toFixed(6));
 
-        concept.chargeWithIVA = surcharges;
+        concept.chargeWithIVA = new Decimal(surcharges.toFixed(6));
 
         const {
             amount: chargeWithoutIVA,
@@ -190,7 +192,7 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             ivaPercentage
         });
 
-        concept.chargeWithoutIVA = chargeWithoutIVA;
+        concept.chargeWithoutIVA = new Decimal(chargeWithoutIVA.toFixed(6));
 
         concept.charges = chargesResult;
 
@@ -239,7 +241,7 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
     } = getAmountAndTaxFromPrice({
         base: baseTax,
         ivaPercentage
-    })
+    });
 
     return {
         concepts,
@@ -257,9 +259,9 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
 export const applyCharges = (params: ApplyChargesParams) => {
     const {amount, fountType} = params;
 
-    let {charges} = params
+    let {charges} = params;
 
-    let base = new Decimal(amount);
+    let base = new Decimal(amount.toFixed(6));
     let discounts = new Decimal(0);
     let surcharges = new Decimal(0);
 
@@ -269,24 +271,22 @@ export const applyCharges = (params: ApplyChargesParams) => {
             order: value?.order || index
         })).sort((a, b) => a.order - b.order);
 
-        // BASE = 1000
-        let variantBase = new Decimal(amount)
+        let variantBase = new Decimal(amount.toFixed(6))
 
         chargesSorted.forEach((charge: Charge) => {
-            // CHARGE = 50
             const {amount: chargeAmount} = calculateCharge({charge, base: variantBase});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
-                variantBase = variantBase.sub(chargeAmount);
-                discounts = discounts.add(chargeAmount);
+                variantBase = new Decimal(variantBase.sub(chargeAmount).toFixed(6));
+                discounts = new Decimal(discounts.add(chargeAmount).toFixed(6));
             }
 
             if (charge.type === ChargeTypeEnum.SURCHARGES) {
-                variantBase = variantBase.add(chargeAmount);
-                surcharges = surcharges.add(chargeAmount);
+                variantBase = new Decimal(variantBase.add(chargeAmount).toFixed(6));
+                surcharges = new Decimal(surcharges.add(chargeAmount).toFixed(6));
             }
 
-            charge.chargeAmount = chargeAmount;
+            charge.chargeAmount = new Decimal(chargeAmount.toFixed(6));
         });
 
         charges = chargesSorted;
@@ -294,17 +294,17 @@ export const applyCharges = (params: ApplyChargesParams) => {
 
     if (fountType === FountTypeEnum.TRADITIONAL) {
         charges.forEach((charge: Charge) => {
-            const {amount: chargeAmount} = calculateCharge({charge, base: amount});
+            const {amount: chargeAmount} = calculateCharge({charge, base: new Decimal(amount.toFixed(6))});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
-                discounts = discounts.add(chargeAmount);
+                discounts = new Decimal(discounts.add(chargeAmount).toFixed(6));
             }
 
             if (charge.type === ChargeTypeEnum.SURCHARGES) {
-                surcharges = surcharges.add(chargeAmount);
+                surcharges = new Decimal(surcharges.add(chargeAmount).toFixed(6));
             }
 
-            charge.chargeAmount = chargeAmount;
+            charge.chargeAmount = new Decimal(chargeAmount.toFixed(6));
         });
     }
 
@@ -322,34 +322,34 @@ export const applyCharges = (params: ApplyChargesParams) => {
 export const calculateCharge = (params: CalculateChargeParams) => {
     const {charge: {amount, application, type}, base} = params;
 
-    const x = new Decimal(base);
+    const x = new Decimal(new Decimal(base).toFixed(6));
 
-    const y = new Decimal(amount);
+    const y = new Decimal(new Decimal(amount).toFixed(6));
 
-    let z = new Decimal(amount);
+    let z = new Decimal(new Decimal(amount).toFixed(6));
 
     if (application === ChargeApplicationEnum.PERCENTAGE) {
-        z = x.mul(y).div(100);
+        z = new Decimal(x.mul(y).div(100).toFixed(6));
     }
 
     switch (type) {
         case ChargeTypeEnum.DISCOUNTS:
             return {
-                base: x,
-                amount: z,
-                applied: x.sub(z),
+                base: new Decimal(x.toFixed(6)),
+                amount: new Decimal(z.toFixed(6)),
+                applied: new Decimal(x.sub(z).toFixed(6)),
             }
         case ChargeTypeEnum.SURCHARGES:
             return {
-                base: x,
-                amount: z,
-                applied: x.add(z),
+                base: new Decimal(x.toFixed(6)),
+                amount: new Decimal(z.toFixed(6)),
+                applied: new Decimal(x.add(z).toFixed(6)),
             }
         default:
             return {
-                base: x,
-                amount: z,
-                applied: x,
+                base: new Decimal(x.toFixed(6)),
+                amount: new Decimal(z.toFixed(6)),
+                applied: new Decimal(x.toFixed(6)),
             }
     }
 }
@@ -364,17 +364,17 @@ export const getPaymentAmount = (params: Payment): Decimal => {
 
     const y = new Decimal(change);
 
-    return x.sub(y);
+    return new Decimal(x.sub(y).toFixed(6));
 }
 
 export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
-    const {base} = params
+    const base = new Decimal(params.base.toFixed(6));
 
     const percentage = new Decimal(params.ivaPercentage).add(1);
 
-    const amount = base.div(percentage);
+    const amount = new Decimal(base.div(percentage).toFixed(6));
 
-    const tax = amount.mul(percentage);
+    const tax = new Decimal(amount.mul(percentage).toFixed(6));
 
     return {
         base,
@@ -384,14 +384,13 @@ export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
 }
 
 export const getAmountAndTaxFromPrice = (params: AmountAndTaxParams) => {
-    const base = new Decimal(params.base);
+    const base = new Decimal(params.base.toFixed(6));
 
     const percentage = new Decimal(params.ivaPercentage);
 
-    const tax = base.mul(percentage);
+    const tax = new Decimal(base.mul(percentage).toFixed(6));
 
-    const amount = base.mul(percentage.add(1));
-
+    const amount = new Decimal(base.mul(percentage.add(1)).toFixed(6));
 
     return {
         base,

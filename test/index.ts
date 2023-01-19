@@ -10,30 +10,45 @@ import {
 } from '../src';
 
 const payment: Payment = {
-    amount: 916,
+    amount: 150,
     change: 0
 };
 
-const charge: Charge = {
-    amount: 33,
-    type: ChargeTypeEnum.DISCOUNTS,
-    application: ChargeApplicationEnum.QUANTITY,
-}
+const charges: Charge[] = [
+    {
+        order: 1,
+        amount: 20,
+        type: ChargeTypeEnum.DISCOUNTS,
+        application: ChargeApplicationEnum.QUANTITY,
+    },
+    {
+        order: 2,
+        amount: 5,
+        type: ChargeTypeEnum.DISCOUNTS,
+        application: ChargeApplicationEnum.PERCENTAGE,
+    },
+    {
+        order: 3,
+        amount: 5,
+        type: ChargeTypeEnum.SURCHARGES,
+        application: ChargeApplicationEnum.PERCENTAGE,
+    },
+]
 
 const concepts: Concept[] = [
     {
         id: 1,
         quantity: 1,
-        basePrice: 949,
-        name: 'Subscripción',
-        charges: [charge],
+        basePrice: 1000.00,
+        name: 'Mensualidad de zumba - junio',
+        charges
     },
 ]
 
-const { detailsWithPaymentApplied: traditional } = calculateInvoicePrices<{ name: string }>({
+const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
     payment,
     concepts,
-    fountType: FountTypeEnum.TRADITIONAL,
+    fountType: FountTypeEnum.DISCOUNT_ON_DISCOUNT,
     ivaPercentage: TaxPercentageEnum.T16
 });
 
