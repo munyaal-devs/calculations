@@ -1,176 +1,395 @@
 import { Decimal } from 'decimal.js';
 
+/**
+ * Configuración de la precisión decimal por defecto.
+ */
+export const DecimalDefaultPrecision = 12;
+
+// Configuración de la precisión decimal por defecto
+Decimal.set({precision: DecimalDefaultPrecision});
+
+/**
+ * Enumeración de porcentajes de impuestos.
+ */
 export enum TaxPercentageEnum {
+    /**
+     * No hay impuestos (0%).
+     */
     T0 = 0,
+
+    /**
+     * Impuesto del 14%.
+     */
     T14 = 0.14,
+
+    /**
+     * Impuesto del 16%.
+     */
     T16 = 0.16,
+
+    /**
+     * Impuesto del 18%.
+     */
     T18 = 0.18
 }
 
+/**
+ * Tipo para porcentaje de impuestos.
+ */
 export type TaxPercentage = TaxPercentageEnum | number;
 
-/*
-* Tipo de cargo
-*
-* @TRADITIONAL - Cargos de forma tradicional
-* @DISCOUNT_ON_DISCOUNT - Descuento sobre descuentos
-* */
-
+/**
+ * Enumeración de tipos de aplicación de cargos.
+ */
 export enum FountTypeEnum {
+    /**
+     * Los cargos se calculan sobre el precio total original en cada paso sin considerar cargos previos.
+     * */
     TRADITIONAL = 1,
+
+    /**
+     * Cada cargo se calcula y aplica al precio total, reduciendo la base para el próximo cálculo. Los cargos se aplican secuencialmente sobre la base ajustada.
+     * */
     DISCOUNT_ON_DISCOUNT = 2,
 }
 
-/*
-* Tipo de cargo
-*
-* @Discounts - Descuento
-* @Surcharges - Cargos
-* */
+/**
+ * Enumeración de tipos de cargo.
+ */
 export enum ChargeTypeEnum {
+    /**
+     * Descuento
+     */
     DISCOUNTS = 1,
+
+    /**
+     * Cargo
+     */
     SURCHARGES = 2,
 }
 
-/*
-* Tipo de aplicación
-*
-* @PERCENTAGE - Descuento
-* @QUANTITY - Cargos
-* */
+/**
+ * Enumeración de tipos de aplicación de cargo.
+ */
 export enum ChargeApplicationEnum {
+    /**
+     * Porcentaje
+     */
     PERCENTAGE = 1,
+
+    /**
+     * Cantidad
+     */
     QUANTITY = 2,
 }
 
-/*
-* Cargos - Cargos extra
-*
-* @amount - Cantidad
-* @type - Tipo de cargo
-* @application - Tipo de aplicación
-* */
+/**
+ * Tipo para representar un cargo extra.
+ */
 export type Charge<T = any> = {
+    /**
+     * Identificador único
+     */
     id?: string | number;
+
+    /**
+     * Orden del cargo
+     * Se recomienda usar cuando se use 'ChargeTypeEnum SURCHARGES'
+     */
     order?: number;
+
+    /**
+     * Cantidad del cargo
+     */
     chargeAmount?: Decimal;
+
+    /**
+     * Cantidad del cargo
+     */
     amount: number;
+
+    /**
+     * Tipo de cargo
+     */
     type: ChargeTypeEnum;
+
+    /**
+     * Tipo de aplicación
+     */
     application: ChargeApplicationEnum;
+
+    /**
+     * Datos adicionales
+     */
     data?: T;
 }
 
-/*
-* Pago - Detalles del pago
-*
-* @change - Cambio
-* @amount - Recibido
-* */
+/**
+ * Tipo para detalles de pago.
+ */
 export type Payment = {
+    /**
+     * Cambio
+     */
     change: number;
+
+    /**
+     * Monto recibido
+     */
     amount: number;
 }
 
+/**
+ * Tipo para detalles fiscales.
+ */
 export type FiscalPrices = {
+    /**
+     * Descuento
+     */
     discount?: Decimal;
+
+    /**
+     * Precio unitario
+     */
     unitPrice?: Decimal;
+
+    /**
+     * Cantidad
+     */
     amount?: Decimal;
+
+    /**
+     * Base de impuesto
+     */
     baseTax?: Decimal;
+
+    /**
+     * Impuesto
+     */
     tax?: Decimal;
+
+    /**
+     * Total
+     */
     total?: Decimal;
 }
 
+/**
+ * Tipo para precios.
+ */
 export type Prices = {
+    /**
+     * Cantidad.
+     */
     quantity: Decimal | number;
+
+    /**
+     * Precio base.
+     */
     basePrice: Decimal | number;
+
+    /**
+     * Detalles fiscales.
+     */
     fiscalPrices?: FiscalPrices;
+
+    /**
+     * Cantidad sin cargos.
+     */
     amountWithoutCharges?: Decimal;
+
+    /**
+     * Cantidad con cargos.
+     */
     amountWithCharges?: Decimal;
+
+    /**
+     * Descuento con IVA.
+     */
     discountWithIVA?: Decimal;
+
+    /**
+     * Descuento sin IVA.
+     */
     discountWithoutIVA?: Decimal;
+
+    /**
+     * Cargo con IVA.
+     */
     chargeWithIVA?: Decimal;
+
+    /**
+     * Cargo sin IVA.
+     */
     chargeWithoutIVA?: Decimal;
 };
 
-/*
-* Concepto
-*
-* @id - Identificador único
-* @name - Nombre descriptivo
-* @price - Precio con IVA
-* @quantity - Cantidad
-* @charges - Cantidad
-* */
+/**
+ * Tipo para representar un concepto.
+ */
 export type Concept<T = any> = Prices & {
+    /**
+     * Identificador único.
+     */
     id: number | string;
+
+    /**
+     * Nombre descriptivo.
+     */
     name: string;
+
+    /**
+     * Cargos.
+     */
     charges: Charge[];
+
+    /**
+     * Datos adicionales.
+     */
     data?: T;
 }
 
-/*
-* Parámetros para calcular los precios en factura
-*
-* @payment - Detalles del pago;
-* @concepts - Arreglo de conceptos con sus cargos
-* @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
-* @ivaPercentage - Porcentaje de iva para aplicar - 0.16
-* */
+/**
+ * Parámetros para calcular una factura.
+ */
 export type CalculateInvoiceParams<T = any> = {
+    /**
+     * Arreglo de conceptos con sus cargos
+     */
     concepts: Concept<T>[];
+
+    /**
+     * Tipo de cargos [Tradicional o Descuento sobre descuento]
+     */
     fountType: FountTypeEnum;
+
+    /**
+     * Porcentaje de IVA para aplicar
+     */
     ivaPercentage: TaxPercentage;
 }
 
-/*
-* Parámetros para calcular los precios en factura
-*
-* @payment - Detalles del pago;
-* @concepts - Arreglo de conceptos con sus cargos
-* @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
-* @ivaPercentage - Porcentaje de iva para aplicar - 0.16
-* */
+/**
+ * Parámetros para calcular los precios de una factura.
+ */
 export type CalculateInvoicePricesParams<T = any> = {
+    /**
+     * Detalles del pago
+     */
     payment: Payment;
+
+    /**
+     * Arreglo de conceptos con sus cargos
+     */
     concepts: Concept<T>[];
+
+    /**
+     * Tipo de cargos [Tradicional o Descuento sobre descuento]
+     */
     fountType: FountTypeEnum;
+
+    /**
+     * Porcentaje de IVA para aplicar
+     */
     ivaPercentage: TaxPercentage;
 }
 
+/**
+ * Tipo para aplicar un pago.
+ */
 export type ApplyPayment<T = any> = {
+    /**
+     * Detalles de los conceptos
+     */
     details: ConceptAmountDetailsResult<T>;
+
+    /**
+     * Porcentaje de pago
+     */
     percentage: Decimal;
+
+    /**
+     * Porcentaje de IVA para aplicar
+     */
     ivaPercentage: TaxPercentage;
 }
 
-/*
-* Calcular los detalles de los conceptos
-*
-* @concepts - Arreglo de conceptos con sus cargos
-* @fountType - Tipo de cargos [Tradicional o Descuento sobre descuento]
-* */
+/**
+ * Parámetros para calcular los detalles de los conceptos.
+ */
 export type ConceptAmountDetailsParams<T = any> = {
-    concepts: Concept<T>[];
+    /**
+     * Arreglo de conceptos con sus cargos
+     */
+    concepts: Concept<T>[];          //
+
+    /**
+     * Tipo de cargos [Tradicional o Descuento sobre descuento]
+     */
     fountType: FountTypeEnum;
+
+    /**
+     * Porcentaje de IVA para aplicar
+     */
     ivaPercentage: TaxPercentage;
 }
 
+/**
+ * Resultado de calcular los detalles de los conceptos.
+ */
 export type ConceptAmountDetailsResult<T = any> = {
+    /**
+     * Arreglo de conceptos con sus cargos
+     */
     concepts: Concept<T>[];
 } & FiscalPrices
 
+/**
+ * Parámetros para aplicar cargos.
+ */
 export type ApplyChargesParams<T = any> = {
+    /**
+     * Tipo de cargos [Tradicional o Descuento sobre descuento]
+     */
     fountType: FountTypeEnum;
+
+    /**
+     * Cargos
+     */
     charges: Charge<T>[];
+
+    /**
+     * Cantidad
+     */
     amount: Decimal;
 }
 
+/**
+ * Parámetros para calcular un cargo.
+ */
 export type CalculateChargeParams<T = any> = {
+    /**
+     * Cantidad base
+     */
     base: Decimal;
+
+    /**
+     * Cargo
+     */
     charge: Charge<T>;
 }
 
+/**
+ * Parámetros para obtener el monto y el impuesto.
+ */
 export type AmountAndTaxParams = {
+    /**
+     * Porcentaje de IVA
+     */
     ivaPercentage: TaxPercentage;
+
+    /**
+     * Cantidad base
+     */
     base: Decimal;
 }

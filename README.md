@@ -1,311 +1,246 @@
-# @munyaal/calculations
+# Documentación de la Librería de Cálculo de Facturas
 
-Esta es una librería para realizar las operaciones comunes de un punto de venta, así como las operaciones para un recibo
-o una factura fiscal
+## Descripción
 
-### Características
+La Librería de Cálculo de Facturas proporciona una serie de funciones y utilidades para calcular detalles de
+facturación, aplicar cargos, descuentos y pagos, y obtener montos e impuestos relacionados con facturas.
 
-- Especifica el porcentaje exacto de los impuestos.
-- Especifica un arreglo de cargos
-  - Descuentos
-  - Cargos
-  - Porcentaje
-  - Cantidad
-- Continúa haciendo operaciones
-- Se exporta la clase 
+## Instalación
 
-### Estructura básica de concepto
-
-El concepto representa al producto o servicio que se necesita calcular
-
-```typescript
-import { Concept } from '@munyaal/calculations'
-
-const concept: Concept = {
-    id: 1,
-    name: 'Mochila verde',
-    price: 450,
-    quantity: 2,
-    charges: []
-}
-```
-
-| Atributo | Uso           | Tipo de dato      | Descripción                                     |
-|----------|---------------|-------------------|-------------------------------------------------|
-| id       | obligatorio   | string or number  | Identificador único del producto o servicio     |
-| name     | obligatorio   | string            | Nombre del producto o servicio                  |
-| price    | obligatorio   | number            | Precio unitario con IVA del producto o servicio |
-| quantity | obligatorio   | number or Decimal | Cantidad de productos o servicios               |
-| charges  | obligatorio   | Charge Array      | Lista de cargos para aplicar                    |
-
-### Estructura básica de un cargo
-
-Son los cargos que se deben aplicar al concepto antes de calcular los detalles de venta
-
-```typescript
-import { Charge } from '@munyaal/calculations'
-
-const charge: Charge[] = [
-    {
-        amount: 20,
-        type: ChargeTypeEnum.SURCHARGES,
-        application: ChargeApplicationEnum.QUANTITY
-    },
-    {
-        amount: 5,
-        type: ChargeTypeEnum.DISCOUNTS,
-        application: ChargeApplicationEnum.PERCENTAGE
-    },
-    {
-        amount: 5,
-        type: ChargeTypeEnum.DISCOUNTS,
-        application: ChargeApplicationEnum.QUANTITY
-    }
-]
-```
-
-| Atributo    | Tipo de dato           | Descripción                                         |
-|-------------|------------------------|-----------------------------------------------------|
-| amount      | number                 | Puede representar una cantidad fija o un porcentaje |
-| type        | ChargeTypeEnum         | Especifica si es un cargo o un descuento            |
-| application | ChargeApplicationEnum  | Especifica si es una cantidad o un porcentaje       |
-
-#### ChargeTypeEnum
-
-```typescript
-/*
-* Tipo de cargo
-*
-* @Discounts - Descuento
-* @Surcharges - Cargos
-* */
-
-export enum ChargeTypeEnum {
-  DISCOUNTS = 1,
-  SURCHARGES = 2,
-}
-```
-
-#### ChargeApplicationEnum
-
-```typescript
-/*
-* Tipo de aplicación
-*
-* @PERCENTAGE - Descuento
-* @QUANTITY - Cargos
-* */
-
-export enum ChargeApplicationEnum {
-  PERCENTAGE = 1,
-  QUANTITY = 2,
-}
-```
-
-### Estructura del pago
-
-Es el pago realizado por el cliente
-
-```typescript
-import { Payment } from '@munyaal/calculations'
-
-const payment: Payment = {
-  amount: 500.00,
-  change: 50.00
-};
+Para utilizar esta librería en tu proyecto, puedes instalarla a través de NPM utilizando el siguiente comando:
 
 ```
-
-| Atributo    | Tipo de dato           | Descripción                                       |
-|-------------|------------------------|---------------------------------------------------|
-| amount      | number                 | Representa la cantidad con la que pago el cliente |
-| change      | number                 | Representa el cambio del cliente                  |
-
-### Realizar las operaciones
-
-Es una función que realiza todas las operaciones necesarias
-
-```typescript
-import { calculateInvoicePrices } from '@munyaal/calculations'
-
-const {detailsWithPaymentApplied: traditional} = calculateInvoicePrices({
-  payment,
-  concepts,
-  fountType: FountTypeEnum.TRADITIONAL,
-  ivaPercentage: TaxPercentageEnum.T16
-});
+npm i @munyaal/cfdi-catalogs
 ```
 
-| Atributo      | Tipo de dato      | Descripción                                      |
-|---------------|-------------------|--------------------------------------------------|
-| payment       | Payment           | Pago realizado (puede ir en 0)                   |
-| concepts      | Concept Array     | Arreglo de conceptos que se desean calcular      |
-| fountType     | FountTypeEnum     | Especifica como debe aplicar los cargos          |
-| ivaPercentage | TaxPercentageEnum | Especifica el porcentaje del impuesto a calcular |
+## Uso básico
 
-#### FountTypeEnum
-
-```typescript
-/*
-* Tipo de cargo
-*
-* @TRADITIONAL - Cargos de forma tradicional
-* @DISCOUNT_ON_DISCOUNT - Descuento sobre descuentos
-* */
-
-export enum FountTypeEnum {
-  TRADITIONAL = 1,
-  DISCOUNT_ON_DISCOUNT = 2,
-}
-```
-
-#### TaxPercentageEnum
-
-```typescript
-
-export enum TaxPercentageEnum {
-  T0 = 0,
-  T14 = 0.14,
-  T16 = 0.16,
-  T18 = 0.18
-}
-```
-
-### Ejemplo
-
-#### Estructura
+Para utilizar las funciones proporcionadas por esta librería en tu código, primero debes importarlas de la siguiente
+manera:
 
 ```typescript
 import {
-  calculateInvoicePrices,
-  Charge,
-  ChargeApplicationEnum,
-  ChargeTypeEnum,
-  Concept,
-  FountTypeEnum,
-  Payment,
-  TaxPercentageEnum,
-} from '@munyaal/calculations';
+    createDecimal,
+    calculateInvoice,
+    calculateInvoicePrices,
+    applyPayment,
+    applyCharges,
+    calculateCharge,
+    getPaymentAmount,
+    getAmountAndTaxFromPriceWithIva,
+    getAmountAndTaxFromPrice,
+} from '@munyaal/cfdi-catalogs';
+```
 
-const payment: Payment = {
-  amount: 5000.00,
-  change: 320.00
-};
+Luego, puedes utilizar estas funciones según tus necesidades en tu aplicación.
 
-const charge: Charge = {
-  amount: 10,
-  type: ChargeTypeEnum.DISCOUNTS,
-  application: ChargeApplicationEnum.PERCENTAGE,
-}
+## Función `createDecimal`
 
-const concepts: Concept[] = [
-  {
-    id: 1,
-    quantity: 1,
-    basePrice: 5200.00,
-    name: 'Bobina de cable UTP cat6 uso rudo',
-    charges: [charge],
-  },
-]
+La función `createDecimal` crea un objeto Decimal a partir de un valor dado.
 
-const result = calculateInvoicePrices({
-  payment,
-  concepts,
-  fountType: FountTypeEnum.TRADITIONAL,
-  ivaPercentage: TaxPercentageEnum.T16
+### Uso
+
+```typescript
+const value = '0.01';
+
+const decimalValue = createDecimal(value);
+```
+
+## Función `calculateInvoice`
+
+La función `calculateInvoice` calcula una factura en función de los conceptos, el tipo de fuente y el porcentaje de IVA.
+
+### Uso
+
+```typescript
+const invoiceDetails = calculateInvoice({
+    concepts,
+    fountType,
+    ivaPercentage,
 });
 ```
 
-Existen dos resultados correctos.
+## Función `calculateInvoicePrices`
 
-##### detailsWithPaymentApplied
+La función `calculateInvoicePrices` calcula los precios de una factura ajustados al pago.
 
-Este resultado realiza las operaciones considerando el pago el cliente y sacan un 
-porcentaje equivalente al pago
+### Uso
 
-##### detailsWithoutPaymentApplied
-
-Este resultado realiza las operaciones sin considerar el pago realizado por el cliente
-
-```json
-
-{
-   "detailsWithPaymentApplied": {
-      "concepts": [
-         {
-            "id": 1,
-            "quantity": "1",
-            "basePrice": "5200",
-            "name": "Bobina de cable UTP cat6 uso rudo",
-            "charges": [
-               {
-                  "amount": 10,
-                  "type": 1,
-                  "application": 1,
-                  "chargeAmount": "520"
-               }
-            ],
-            "fiscalPrices": {
-               "unitPrice": "4482.7586206896551724",
-               "baseTax": "4034.4827586206896552",
-               "tax": "645.51724137931034483",
-               "amount": "4482.7586206896551724",
-               "total": "4680",
-               "discount": "448.27586206896551724"
-            },
-            "amountWithoutCharges": "5200",
-            "amountWithCharges": "4680",
-            "discountWithIVA": "0",
-            "discountWithoutIVA": "0",
-            "chargeWithIVA": "0",
-            "chargeWithoutIVA": "0"
-         }
-      ],
-      "discount": "448.27586206896551724",
-      "amount": "4482.7586206896551724",
-      "baseTax": "4034.4827586206896552",
-      "tax": "645.51724137931034483",
-      "total": "4680"
-   },
-   "detailsWithoutPaymentApplied": {
-      "concepts": [
-         {
-            "id": 1,
-            "quantity": "1",
-            "basePrice": "5200",
-            "name": "Bobina de cable UTP cat6 uso rudo",
-            "charges": [
-               {
-                  "amount": 10,
-                  "type": 1,
-                  "application": 1,
-                  "chargeAmount": "520"
-               }
-            ],
-            "fiscalPrices": {
-               "unitPrice": "4482.7586206896551724",
-               "baseTax": "4034.4827586206896552",
-               "tax": "645.51724137931034483",
-               "amount": "4482.7586206896551724",
-               "total": "4680",
-               "discount": "448.27586206896551724"
-            },
-            "amountWithoutCharges": "5200",
-            "amountWithCharges": "4680",
-            "discountWithIVA": "0",
-            "discountWithoutIVA": "0",
-            "chargeWithIVA": "0",
-            "chargeWithoutIVA": "0"
-         }
-      ],
-      "discount": "448.27586206896551724",
-      "amount": "4482.7586206896551724",
-      "baseTax": "4034.4827586206896552",
-      "tax": "645.51724137931034483",
-      "total": "4680"
-   }
-}
-
+```typescript
+const invoicePrices = calculateInvoicePrices({
+    payment,
+    concepts,
+    fountType,
+    ivaPercentage,
+});
 ```
 
-#### Resultado
+## Función `applyPayment`
+
+La función `applyPayment` aplica un pago a los detalles de la factura.
+
+### Uso
+
+```typescript
+const detailsWithPayment = applyPayment({
+    details,
+    percentage,
+    ivaPercentage,
+});
+```
+
+## Función `applyCharges`
+
+La función `applyCharges` aplica cargos a un monto dado.
+
+### Uso
+
+```typescript
+const chargeResult = applyCharges({
+    amount,
+    charges,
+    fountType,
+});
+```
+
+## Función `calculateCharge`
+
+La función `calculateCharge` calcula un cargo en función de su tipo y aplicación.
+
+### Uso
+
+```typescript
+const chargeResult = calculateCharge({
+    charge,
+    base,
+});
+```
+
+## Función `getPaymentAmount`
+
+La función `getPaymentAmount` obtiene el monto de pago restando el cambio.
+
+### Uso
+
+```typescript
+const paymentAmount = getPaymentAmount({
+    amount,
+    change,
+});
+```
+
+## Función `getAmountAndTaxFromPriceWithIva`
+
+La función `getAmountAndTaxFromPriceWithIva` obtiene el monto y el impuesto de un precio con IVA.
+
+### Uso
+
+```typescript
+const result = getAmountAndTaxFromPriceWithIva({
+    base,
+    ivaPercentage,
+});
+```
+
+## Función `getAmountAndTaxFromPrice`
+
+La función `getAmountAndTaxFromPrice` obtiene el monto y el impuesto de un precio sin IVA.
+
+### Uso
+
+```typescript
+const result = getAmountAndTaxFromPrice({
+    base,
+    ivaPercentage,
+});
+```
+
+## Ejemplo de uso
+
+A continuación, se muestra un ejemplo de cómo utilizar las funciones de la librería para calcular una factura con
+conceptos y cargos personalizados:
+
+```typescript
+import {
+    calculateInvoice,
+    Charge,
+    ChargeApplicationEnum,
+    ChargeTypeEnum,
+    Concept,
+    FountTypeEnum,
+    TaxPercentageEnum,
+} from 'tu-libreria-de-calculo-facturas';
+
+// Definición de cargos personalizados
+const charges: Charge[] = [
+    {
+        order: 1,
+        amount: 20,
+        type: ChargeTypeEnum.DISCOUNTS,
+        application: ChargeApplicationEnum.QUANTITY,
+    },
+    {
+        order: 2,
+        amount: 5,
+        type: ChargeTypeEnum.DISCOUNTS,
+        application: ChargeApplicationEnum.PERCENTAGE,
+    },
+];
+
+// Definición de conceptos
+const concepts: Concept[] = [
+    {
+        id: 1,
+        quantity: 1,
+        basePrice: 1000.00,
+        name: 'Mensualidad de zumba - junio',
+        charges,
+    },
+    {
+        id: 2,
+        quantity: 2,
+        basePrice: 1500.00,
+        name: 'Mensualidad de zumba - julio',
+        charges,
+    },
+];
+
+// Cálculo de la factura en modo tradicional
+const traditional = calculateInvoice({
+    concepts,
+    fountType: FountTypeEnum.TRADITIONAL,
+    ivaPercentage: TaxPercentageEnum.T16,
+});
+
+// Impresión de los detalles de los conceptos
+traditional.concepts.forEach((value) => {
+    console.log(`Producto - ${value.name}`);
+
+    console.log(`Cantidad               $ `, value?.quantity?.toFixed(6).toString());
+    console.log(`Precio unitario        $ `, value?.fiscalPrices?.unitPrice?.toFixed(6).toString());
+    console.log(`Importe                $ `, value?.fiscalPrices?.amount?.toFixed(6).toString());
+    console.log(`Descuento              $ `, value?.fiscalPrices?.discount?.toFixed(6).toString());
+    console.log(`Base de impuestos      $ `, value?.fiscalPrices?.baseTax?.toFixed(6).toString());
+    console.log(`Impuesto               $ `, value?.fiscalPrices?.tax?.toFixed(6).toString());
+    console.log('\n');
+});
+
+// Impresión de los impuestos y el comprobante
+console.log('Impuestos \n \n');
+console.log(`Base de impuestos      $ `, traditional.baseTax?.toFixed(6).toString());
+console.log(`Impuesto               $ `, traditional.tax?.toFixed(6).toString());
+console.log('Comprobante \n \n');
+console.log(`Importe                $ `, traditional.amount?.toFixed(6).toString());
+console.log(`Descuento              $ `, traditional.discount?.toFixed(6).toString());
+console.log(`Impuesto               $ `, traditional.tax?.toFixed(6).toString());
+console.log(`Total                  $ `, traditional.total?.toFixed(6).toString());
+```
+
+Asegúrate de ajustar los valores y las variables en el ejemplo de acuerdo a tus necesidades específicas. Esta es una
+muestra de cómo puedes utilizar las funciones de la librería para calcular y obtener detalles de facturación
+personalizados.
+
+## Contribución
+
+Si deseas contribuir a esta librería o informar sobre problemas, puedes hacerlo a través del repositorio de GitHub
+en https://github.com/munyaal/calculations.

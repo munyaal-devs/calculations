@@ -1,5 +1,4 @@
 import { Decimal } from 'decimal.js';
-
 import {
     AmountAndTaxParams,
     ApplyChargesParams,
@@ -13,17 +12,43 @@ import {
     Concept,
     ConceptAmountDetailsParams,
     ConceptAmountDetailsResult,
+    DecimalDefaultPrecision,
     FountTypeEnum,
     Payment
 } from '../types';
 
-export const calculateInvoice = <T = any>(params: CalculateInvoiceParams) => {
+// Configuración de la precisión decimal por defecto
+Decimal.set({precision: DecimalDefaultPrecision});
+
+/**
+ * Crea un objeto Decimal a partir de un valor.
+ * @param {string|number|Decimal} value - El valor decimal.
+ * @returns {Decimal} - Un objeto Decimal.
+ * Ejemplo: createDecimal('0.01')
+ */
+export const createDecimal = (value: string | number | Decimal): Decimal => {
+    return new Decimal(value);
+};
+
+/**
+ * Calcula una factura.
+ * @param {Object} params - Parámetros de entrada para el cálculo de la factura.
+ * @returns {Object} - Detalles de la factura calculada.
+ * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage })
+ */
+export const calculateInvoice = <T = any>(params: CalculateInvoiceParams<T>): ConceptAmountDetailsResult<T> => {
     const {concepts, fountType, ivaPercentage} = params;
 
     return getConceptAmountDetails<T>({concepts, fountType, ivaPercentage})
 }
 
-export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesParams) => {
+/**
+ * Calcula los precios de una factura ajustados al pago
+ * @param {Object} params - Parámetros de entrada para el cálculo de los precios de la factura.
+ * @returns {Object} - Precios calculados de la factura.
+ * Ejemplo: calculateInvoicePrices({ payment, concepts, fountType, ivaPercentage })
+ */
+export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesParams<T>) => {
     const {payment, concepts, fountType, ivaPercentage} = params;
 
     const detailsWithoutPaymentApplied = calculateInvoice<T>({concepts, fountType, ivaPercentage});
@@ -49,6 +74,12 @@ export const calculateInvoicePrices = <T = any>(params: CalculateInvoicePricesPa
     };
 }
 
+/**
+ * Aplica un pago a los detalles de la factura.
+ * @param {Object} params - Parámetros de entrada para la aplicación del pago.
+ * @returns {Object} - Detalles de la factura con el pago aplicado.
+ * Ejemplo: applyPayment({ details, percentage, ivaPercentage })
+ */
 export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetailsResult<T> => {
     const {percentage, details: detailsWithoutPayment, ivaPercentage} = params;
 
@@ -56,8 +87,8 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
 
     const concepts: Concept<T>[] = [];
 
-    let discount = new Decimal(0);
-    let amount = new Decimal(0);
+    let discount = createDecimal(0);
+    let amount = createDecimal(0);
 
     details.concepts.map((value: Concept<T>) => {
         const concept = Object.assign({}, {...value});
@@ -138,31 +169,34 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
     }
 }
 
-/*
-* Obtiene los detalles de los conceptos
-* */
+/**
+ * Obtiene los detalles de los conceptos de la factura.
+ * @param {Object} params - Parámetros de entrada para obtener los detalles de los conceptos.
+ * @returns {Object} - Detalles de los conceptos de la factura.
+ * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage })
+ */
 export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T> => {
     const {concepts, fountType, ivaPercentage} = params;
 
-    let discount = new Decimal(0);
-    let amount = new Decimal(0);
+    let discount = createDecimal(0);
+    let amount = createDecimal(0);
 
     concepts.forEach((concept: Concept) => {
         concept.fiscalPrices = {
-            unitPrice: new Decimal(0),
-            baseTax: new Decimal(0),
-            tax: new Decimal(0),
-            amount: new Decimal(0),
-            total: new Decimal(0),
-            discount: new Decimal(0),
+            unitPrice: createDecimal(0),
+            baseTax: createDecimal(0),
+            tax: createDecimal(0),
+            amount: createDecimal(0),
+            total: createDecimal(0),
+            discount: createDecimal(0),
         };
 
         const charges = concept.charges.sort((a, b) => a.type - b.type);
 
-        concept.basePrice = new Decimal(new Decimal(concept.basePrice).toFixed(6));
-        concept.quantity = new Decimal(new Decimal(concept.quantity).toFixed(6));
+        concept.basePrice = createDecimal(concept.basePrice);
+        concept.quantity = createDecimal(concept.quantity);
 
-        concept.amountWithoutCharges = new Decimal(concept.basePrice.mul(concept.quantity).toFixed(6));
+        concept.amountWithoutCharges = concept.basePrice.mul(concept.quantity);
 
         const {discounts, surcharges, base, charges: chargesResult} = applyCharges({
             amount: concept.amountWithoutCharges,
@@ -170,9 +204,9 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             fountType
         });
 
-        concept.amountWithCharges = new Decimal(concept.amountWithoutCharges.add(surcharges).sub(discounts).toFixed(6));
+        concept.amountWithCharges = concept.amountWithoutCharges.add(surcharges).sub(discounts);
 
-        concept.discountWithIVA = new Decimal(discounts.toFixed(6));
+        concept.discountWithIVA = discounts;
 
         const {
             amount: discountWithoutIVA,
@@ -181,9 +215,9 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             ivaPercentage
         });
 
-        concept.discountWithoutIVA = new Decimal(discountWithoutIVA.toFixed(6));
+        concept.discountWithoutIVA = discountWithoutIVA;
 
-        concept.chargeWithIVA = new Decimal(surcharges.toFixed(6));
+        concept.chargeWithIVA = surcharges;
 
         const {
             amount: chargeWithoutIVA,
@@ -192,7 +226,7 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             ivaPercentage
         });
 
-        concept.chargeWithoutIVA = new Decimal(chargeWithoutIVA.toFixed(6));
+        concept.chargeWithoutIVA = new Decimal(chargeWithoutIVA);
 
         concept.charges = chargesResult;
 
@@ -253,15 +287,18 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
     }
 }
 
-/*
-* Aplicar cargos
-* */
+/**
+ * Aplica cargos a un monto dado.
+ * @param {Object} params - Parámetros de entrada para aplicar los cargos.
+ * @returns {Object} - Resultado de la aplicación de cargos.
+ * Ejemplo: applyCharges({ amount, charges, fountType })
+ */
 export const applyCharges = (params: ApplyChargesParams) => {
     const {amount, fountType} = params;
 
     let {charges} = params;
 
-    let base = new Decimal(amount.toFixed(6));
+    let base = new Decimal(amount);
     let discounts = new Decimal(0);
     let surcharges = new Decimal(0);
 
@@ -271,22 +308,22 @@ export const applyCharges = (params: ApplyChargesParams) => {
             order: value?.order || index
         })).sort((a, b) => a.order - b.order);
 
-        let variantBase = new Decimal(amount.toFixed(6))
+        let variantBase = new Decimal(amount)
 
         chargesSorted.forEach((charge: Charge) => {
             const {amount: chargeAmount} = calculateCharge({charge, base: variantBase});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
-                variantBase = new Decimal(variantBase.sub(chargeAmount).toFixed(6));
-                discounts = new Decimal(discounts.add(chargeAmount).toFixed(6));
+                variantBase = new Decimal(variantBase.sub(chargeAmount));
+                discounts = new Decimal(discounts.add(chargeAmount));
             }
 
             if (charge.type === ChargeTypeEnum.SURCHARGES) {
-                variantBase = new Decimal(variantBase.add(chargeAmount).toFixed(6));
-                surcharges = new Decimal(surcharges.add(chargeAmount).toFixed(6));
+                variantBase = new Decimal(variantBase.add(chargeAmount));
+                surcharges = new Decimal(surcharges.add(chargeAmount));
             }
 
-            charge.chargeAmount = new Decimal(chargeAmount.toFixed(6));
+            charge.chargeAmount = new Decimal(chargeAmount);
         });
 
         charges = chargesSorted;
@@ -294,17 +331,17 @@ export const applyCharges = (params: ApplyChargesParams) => {
 
     if (fountType === FountTypeEnum.TRADITIONAL) {
         charges.forEach((charge: Charge) => {
-            const {amount: chargeAmount} = calculateCharge({charge, base: new Decimal(amount.toFixed(6))});
+            const {amount: chargeAmount} = calculateCharge({charge, base: new Decimal(amount)});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
-                discounts = new Decimal(discounts.add(chargeAmount).toFixed(6));
+                discounts = new Decimal(discounts.add(chargeAmount));
             }
 
             if (charge.type === ChargeTypeEnum.SURCHARGES) {
-                surcharges = new Decimal(surcharges.add(chargeAmount).toFixed(6));
+                surcharges = new Decimal(surcharges.add(chargeAmount));
             }
 
-            charge.chargeAmount = new Decimal(chargeAmount.toFixed(6));
+            charge.chargeAmount = new Decimal(chargeAmount);
         });
     }
 
@@ -316,65 +353,77 @@ export const applyCharges = (params: ApplyChargesParams) => {
     }
 }
 
-/*
-* Calcular el cargo
-* */
+/**
+ * Calcula un cargo en función de su tipo y aplicación.
+ * @param {Object} params - Parámetros de entrada para calcular un cargo.
+ * @returns {Object} - Resultado del cálculo del cargo.
+ * Ejemplo: calculateCharge({ charge, base })
+ */
 export const calculateCharge = (params: CalculateChargeParams) => {
     const {charge: {amount, application, type}, base} = params;
 
-    const x = new Decimal(new Decimal(base).toFixed(6));
+    const x = createDecimal(base);
 
-    const y = new Decimal(new Decimal(amount).toFixed(6));
+    const y = createDecimal(amount);
 
-    let z = new Decimal(new Decimal(amount).toFixed(6));
+    let z = createDecimal(amount);
 
     if (application === ChargeApplicationEnum.PERCENTAGE) {
-        z = new Decimal(x.mul(y).div(100).toFixed(6));
+        z = x.mul(y).div(100);
     }
 
     switch (type) {
         case ChargeTypeEnum.DISCOUNTS:
             return {
-                base: new Decimal(x.toFixed(6)),
-                amount: new Decimal(z.toFixed(6)),
-                applied: new Decimal(x.sub(z).toFixed(6)),
+                base: x,
+                amount: z,
+                applied: x.sub(z),
             }
         case ChargeTypeEnum.SURCHARGES:
             return {
-                base: new Decimal(x.toFixed(6)),
-                amount: new Decimal(z.toFixed(6)),
-                applied: new Decimal(x.add(z).toFixed(6)),
+                base: x,
+                amount: z,
+                applied: x.add(z),
             }
         default:
             return {
-                base: new Decimal(x.toFixed(6)),
-                amount: new Decimal(z.toFixed(6)),
-                applied: new Decimal(x.toFixed(6)),
+                base: x,
+                amount: z,
+                applied: x,
             }
     }
 }
 
-/*
-* Obtiene el monto del pago
-* */
+/**
+ * Obtiene el monto de pago restando el cambio.
+ * @param {Object} params - Parámetros de entrada para obtener el monto de pago.
+ * @returns {Decimal} - Monto de pago calculado.
+ * Ejemplo: getPaymentAmount({ amount, change })
+ */
 export const getPaymentAmount = (params: Payment): Decimal => {
     const {amount, change} = params;
 
-    const x = new Decimal(amount);
+    const x = createDecimal(amount);
 
-    const y = new Decimal(change);
+    const y = createDecimal(change);
 
-    return new Decimal(x.sub(y).toFixed(6));
+    return x.sub(y);
 }
 
+/**
+ * Obtiene el monto y el impuesto de un precio con IVA.
+ * @param {Object} params - Parámetros de entrada para obtener el monto y el impuesto.
+ * @returns {Object} - Monto y impuesto calculados.
+ * Ejemplo: getAmountAndTaxFromPriceWithIva({ base, ivaPercentage })
+ */
 export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
-    const base = new Decimal(params.base.toFixed(6));
+    const base = createDecimal(params.base);
 
-    const percentage = new Decimal(params.ivaPercentage).add(1);
+    const percentage = createDecimal(params.ivaPercentage).add(1);
 
-    const amount = new Decimal(base.div(percentage).toFixed(6));
+    const amount = base.div(percentage);
 
-    const tax = new Decimal(amount.mul(percentage).toFixed(6));
+    const tax = amount.mul(percentage);
 
     return {
         base,
@@ -383,14 +432,20 @@ export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
     }
 }
 
+/**
+ * Obtiene el monto y el impuesto de un precio sin IVA.
+ * @param {Object} params - Parámetros de entrada para obtener el monto y el impuesto.
+ * @returns {Object} - Monto y impuesto calculados.
+ * Ejemplo: getAmountAndTaxFromPriceWithIva({ base, ivaPercentage })
+ */
 export const getAmountAndTaxFromPrice = (params: AmountAndTaxParams) => {
-    const base = new Decimal(params.base.toFixed(6));
+    const base = createDecimal(params.base);
 
-    const percentage = new Decimal(params.ivaPercentage);
+    const percentage = createDecimal(params.ivaPercentage);
 
-    const tax = new Decimal(base.mul(percentage).toFixed(6));
+    const tax = base.mul(percentage);
 
-    const amount = new Decimal(base.mul(percentage.add(1)).toFixed(6));
+    const amount = base.add(tax);
 
     return {
         base,
