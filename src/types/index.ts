@@ -3,7 +3,7 @@ import { Decimal } from 'decimal.js';
 /**
  * Configuración de la precisión decimal por defecto.
  */
-export const DecimalDefaultPrecision = 28;
+export const DecimalDefaultPrecision = 15;
 
 // Configuración de la precisión decimal por defecto
 Decimal.set({precision: DecimalDefaultPrecision});
