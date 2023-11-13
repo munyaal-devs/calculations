@@ -34,12 +34,12 @@ export const createDecimal = (value: string | number | Decimal): Decimal => {
  * Calcula una factura.
  * @param {Object} params - Parámetros de entrada para el cálculo de la factura.
  * @returns {Object} - Detalles de la factura calculada.
- * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage })
+ * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage, charges })
  */
-export const calculateInvoice = <T = any>(params: CalculateInvoiceParams<T>): ConceptAmountDetailsResult<T> => {
-    const {concepts, fountType, ivaPercentage} = params;
+export const calculateInvoice = <T = any, R = any>(params: CalculateInvoiceParams<T, R>): ConceptAmountDetailsResult<T, R> => {
+    const {concepts, fountType, ivaPercentage, charges} = params;
 
-    return getConceptAmountDetails<T>({concepts, fountType, ivaPercentage})
+    return getConceptAmountDetails<T, R>({concepts, fountType, ivaPercentage, charges})
 }
 
 /**
@@ -93,7 +93,7 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
     details.concepts.map((value: Concept<T>) => {
         const concept = Object.assign({}, {...value});
 
-        concept.charges.forEach((charge: Charge) => {
+        concept?.charges?.forEach((charge: Charge) => {
             charge.chargeAmount = charge.chargeAmount?.mul(percentage);
         })
 
@@ -173,10 +173,10 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
  * Obtiene los detalles de los conceptos de la factura.
  * @param {Object} params - Parámetros de entrada para obtener los detalles de los conceptos.
  * @returns {Object} - Detalles de los conceptos de la factura.
- * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage })
+ * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage, charges: saleCharges })
  */
-export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T> => {
-    const {concepts, fountType, ivaPercentage} = params;
+export const getConceptAmountDetails = <T = any, R = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T, R> => {
+    const {concepts, fountType, ivaPercentage, charges: saleCharges} = params;
 
     let discount = createDecimal(0);
     let amount = createDecimal(0);
@@ -191,7 +191,7 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
             discount: createDecimal(0),
         };
 
-        const charges = concept.charges.sort((a, b) => a.type - b.type);
+        const charges = concept?.charges?.sort?.((a, b) => a.type - b.type);
 
         concept.basePrice = createDecimal(concept.basePrice);
         concept.quantity = createDecimal(concept.quantity);
@@ -284,6 +284,7 @@ export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsPar
         baseTax,
         tax,
         total,
+        charges: saleCharges,
     }
 }
 
@@ -303,14 +304,14 @@ export const applyCharges = (params: ApplyChargesParams) => {
     let surcharges = new Decimal(0);
 
     if (fountType === FountTypeEnum.DISCOUNT_ON_DISCOUNT) {
-        const chargesSorted = charges.map((value, index) => ({
+        const chargesSorted = charges?.map((value, index) => ({
             ...value,
             order: value?.order || index
         })).sort((a, b) => a.order - b.order);
 
         let variantBase = new Decimal(amount)
 
-        chargesSorted.forEach((charge: Charge) => {
+        chargesSorted?.forEach((charge: Charge) => {
             const {amount: chargeAmount} = calculateCharge({charge, base: variantBase});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {
@@ -330,7 +331,7 @@ export const applyCharges = (params: ApplyChargesParams) => {
     }
 
     if (fountType === FountTypeEnum.TRADITIONAL) {
-        charges.forEach((charge: Charge) => {
+        charges?.forEach((charge: Charge) => {
             const {amount: chargeAmount} = calculateCharge({charge, base: new Decimal(amount)});
 
             if (charge.type === ChargeTypeEnum.DISCOUNTS) {

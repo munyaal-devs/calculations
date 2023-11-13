@@ -239,9 +239,9 @@ export type Concept<T = any> = Prices & {
     name: string;
 
     /**
-     * Cargos.
+     * Cargos (opcional).
      */
-    charges: Charge[];
+    charges?: Charge[];
 
     /**
      * Datos adicionales.
@@ -252,7 +252,7 @@ export type Concept<T = any> = Prices & {
 /**
  * Parámetros para calcular una factura.
  */
-export type CalculateInvoiceParams<T = any> = {
+export type CalculateInvoiceParams<T = any, R = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
@@ -267,6 +267,11 @@ export type CalculateInvoiceParams<T = any> = {
      * Porcentaje de IVA para aplicar
      */
     ivaPercentage: TaxPercentage;
+
+    /**
+    * Arreglo de cargos que aplican sobre la venta en general (opcional)
+    * */
+    charges?: Charge<R>[];
 }
 
 /**
@@ -317,11 +322,11 @@ export type ApplyPayment<T = any> = {
 /**
  * Parámetros para calcular los detalles de los conceptos.
  */
-export type ConceptAmountDetailsParams<T = any> = {
+export type ConceptAmountDetailsParams<T = any, R = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
-    concepts: Concept<T>[];          //
+    concepts: Concept<T>[];
 
     /**
      * Tipo de cargos [Tradicional o Descuento sobre descuento]
@@ -332,16 +337,26 @@ export type ConceptAmountDetailsParams<T = any> = {
      * Porcentaje de IVA para aplicar
      */
     ivaPercentage: TaxPercentage;
+
+    /**
+    * Arreglo de cargos que aplican en la venta (opcional)
+    * */
+    charges?: Charge<R>[];
 }
 
 /**
  * Resultado de calcular los detalles de los conceptos.
  */
-export type ConceptAmountDetailsResult<T = any> = {
+export type ConceptAmountDetailsResult<T = any, R = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
     concepts: Concept<T>[];
+
+    /**
+    * Arreglo de cargos en la venta (opcional)
+    * */
+    charges?: Charge<R>[];
 } & FiscalPrices
 
 /**
@@ -356,7 +371,7 @@ export type ApplyChargesParams<T = any> = {
     /**
      * Cargos
      */
-    charges: Charge<T>[];
+    charges?: Charge<T>[];
 
     /**
      * Cantidad
