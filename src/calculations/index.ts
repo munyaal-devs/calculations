@@ -369,7 +369,7 @@ export const calculateCharge = (params: CalculateChargeParams) => {
     let z = createDecimal(amount);
 
     if (application === ChargeApplicationEnum.PERCENTAGE) {
-        z = x.mul(y).div(100);
+        z = x.mul(y);
     }
 
     switch (type) {

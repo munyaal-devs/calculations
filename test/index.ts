@@ -11,39 +11,44 @@ import {
 const charges: Charge[] = [
     {
         order: 1,
+        amount: 0.05,
+        type: ChargeTypeEnum.DISCOUNTS,
+        application: ChargeApplicationEnum.PERCENTAGE,
+    },
+    {
+        order: 2,
         amount: 20,
         type: ChargeTypeEnum.DISCOUNTS,
         application: ChargeApplicationEnum.QUANTITY,
     },
     {
-        order: 2,
-        amount: 5,
-        type: ChargeTypeEnum.DISCOUNTS,
-        application: ChargeApplicationEnum.PERCENTAGE,
+        order: 3,
+        amount: 15,
+        type: ChargeTypeEnum.SURCHARGES,
+        application: ChargeApplicationEnum.QUANTITY,
     },
+    {
+        order: 4,
+        amount: 0.03,
+        type: ChargeTypeEnum.SURCHARGES,
+        application: ChargeApplicationEnum.PERCENTAGE,
+    }
 ]
 
 const concepts: Concept[] = [
     {
         id: 1,
         quantity: 1,
-        basePrice: 1000.00,
+        basePrice: 120.00,
         name: 'Mensualidad de zumba - junio',
         charges
-    },
-    {
-        id: 2,
-        quantity: 2,
-        basePrice: 1500.00,
-        name: 'Mensualidad de zumba - julio',
-        charges
-    },
+    }
 ];
 
 const traditional = calculateInvoice({
     concepts,
-    fountType: FountTypeEnum.TRADITIONAL,
-    ivaPercentage: TaxPercentageEnum.T16
+    fountType: FountTypeEnum.DISCOUNT_ON_DISCOUNT,
+    ivaPercentage: TaxPercentageEnum.T0
 });
 
 
@@ -53,12 +58,12 @@ traditional.concepts.forEach((value) => {
     console.log(`Cantidad               $ `, value?.quantity?.toFixed(6).toString())
 
 
-    console.log(`Precio unitario        $ `, value?.fiscalPrices?.unitPrice?.toFixed(6).toString())
-    console.log(`Importe                $ `, value?.fiscalPrices?.amount?.toFixed(6).toString())
-    console.log(`Descuento              $ `, value?.fiscalPrices?.discount?.toFixed(6).toString())
+    console.log(`Precio unitario        $ `, value?.basePrice?.toFixed(6).toString())
+    console.log(`Importe                $ `, value?.amountWithoutCharges?.toFixed(6).toString())
+    console.log(`Cargo                  $ `, value?.chargeWithIVA?.toFixed(6).toString())
+    console.log(`Descuento              $ `, value?.discountWithIVA?.toFixed(6).toString())
 
-    console.log(`Base de impuestos      $ `, value?.fiscalPrices?.baseTax?.toFixed(6).toString())
-    console.log(`Impuesto               $ `, value?.fiscalPrices?.tax?.toFixed(6).toString())
+    console.log(`Total                  $ `, value?.amountWithCharges?.toFixed(6).toString())
 
     console.log('\n')
 })

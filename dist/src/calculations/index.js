@@ -261,7 +261,7 @@ const calculateCharge = (params) => {
     const y = (0, exports.createDecimal)(amount);
     let z = (0, exports.createDecimal)(amount);
     if (application === types_1.ChargeApplicationEnum.PERCENTAGE) {
-        z = x.mul(y).div(100);
+        z = x.mul(y);
     }
     switch (type) {
         case types_1.ChargeTypeEnum.DISCOUNTS:
