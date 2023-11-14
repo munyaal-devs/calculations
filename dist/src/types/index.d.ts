@@ -197,9 +197,9 @@ export type Concept<T = any> = Prices & {
      */
     name: string;
     /**
-     * Cargos.
+     * Cargos (opcional).
      */
-    charges: Charge[];
+    charges?: Charge[];
     /**
      * Datos adicionales.
      */
@@ -280,7 +280,7 @@ export type ConceptAmountDetailsParams<T = any> = {
 /**
  * Resultado de calcular los detalles de los conceptos.
  */
-export type ConceptAmountDetailsResult<T = any> = {
+export type ConceptAmountDetailsResult<T = any, R = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
@@ -297,7 +297,7 @@ export type ApplyChargesParams<T = any> = {
     /**
      * Cargos
      */
-    charges: Charge<T>[];
+    charges?: Charge<T>[];
     /**
      * Cantidad
      */

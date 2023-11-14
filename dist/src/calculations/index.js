@@ -19,7 +19,7 @@ exports.createDecimal = createDecimal;
  * Calcula una factura.
  * @param {Object} params - Parámetros de entrada para el cálculo de la factura.
  * @returns {Object} - Detalles de la factura calculada.
- * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage })
+ * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage, charges })
  */
 const calculateInvoice = (params) => {
     const { concepts, fountType, ivaPercentage } = params;
@@ -64,39 +64,39 @@ const applyPayment = (params) => {
     let discount = (0, exports.createDecimal)(0);
     let amount = (0, exports.createDecimal)(0);
     details.concepts.map((value) => {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         const concept = Object.assign({}, Object.assign({}, value));
-        concept.charges.forEach((charge) => {
+        (_a = concept === null || concept === void 0 ? void 0 : concept.charges) === null || _a === void 0 ? void 0 : _a.forEach((charge) => {
             var _a;
             charge.chargeAmount = (_a = charge.chargeAmount) === null || _a === void 0 ? void 0 : _a.mul(percentage);
         });
         if (concept.amountWithoutCharges) {
-            concept.amountWithoutCharges = (_a = concept.amountWithoutCharges) === null || _a === void 0 ? void 0 : _a.mul(percentage);
+            concept.amountWithoutCharges = (_b = concept.amountWithoutCharges) === null || _b === void 0 ? void 0 : _b.mul(percentage);
         }
         if (concept.amountWithCharges) {
-            concept.amountWithCharges = (_b = concept.amountWithCharges) === null || _b === void 0 ? void 0 : _b.mul(percentage);
+            concept.amountWithCharges = (_c = concept.amountWithCharges) === null || _c === void 0 ? void 0 : _c.mul(percentage);
         }
         if (concept.discountWithIVA) {
-            concept.discountWithIVA = (_c = concept.discountWithIVA) === null || _c === void 0 ? void 0 : _c.mul(percentage);
+            concept.discountWithIVA = (_d = concept.discountWithIVA) === null || _d === void 0 ? void 0 : _d.mul(percentage);
         }
         if (concept.discountWithoutIVA) {
-            concept.discountWithoutIVA = (_d = concept.discountWithoutIVA) === null || _d === void 0 ? void 0 : _d.mul(percentage);
+            concept.discountWithoutIVA = (_e = concept.discountWithoutIVA) === null || _e === void 0 ? void 0 : _e.mul(percentage);
         }
         if (concept.chargeWithIVA) {
-            concept.chargeWithIVA = (_e = concept.chargeWithIVA) === null || _e === void 0 ? void 0 : _e.mul(percentage);
+            concept.chargeWithIVA = (_f = concept.chargeWithIVA) === null || _f === void 0 ? void 0 : _f.mul(percentage);
         }
         if (concept.chargeWithoutIVA) {
-            concept.chargeWithoutIVA = (_f = concept.chargeWithoutIVA) === null || _f === void 0 ? void 0 : _f.mul(percentage);
+            concept.chargeWithoutIVA = (_g = concept.chargeWithoutIVA) === null || _g === void 0 ? void 0 : _g.mul(percentage);
         }
-        if ((_g = concept.fiscalPrices) === null || _g === void 0 ? void 0 : _g.unitPrice) {
-            concept.fiscalPrices.unitPrice = (_j = (_h = concept.fiscalPrices) === null || _h === void 0 ? void 0 : _h.unitPrice) === null || _j === void 0 ? void 0 : _j.mul(percentage);
+        if ((_h = concept.fiscalPrices) === null || _h === void 0 ? void 0 : _h.unitPrice) {
+            concept.fiscalPrices.unitPrice = (_k = (_j = concept.fiscalPrices) === null || _j === void 0 ? void 0 : _j.unitPrice) === null || _k === void 0 ? void 0 : _k.mul(percentage);
         }
-        if (typeof ((_k = concept.fiscalPrices) === null || _k === void 0 ? void 0 : _k.amount) !== 'undefined' && typeof ((_l = concept.fiscalPrices) === null || _l === void 0 ? void 0 : _l.discount) !== 'undefined') {
-            concept.fiscalPrices.discount = (_o = (_m = concept.fiscalPrices) === null || _m === void 0 ? void 0 : _m.discount) === null || _o === void 0 ? void 0 : _o.mul(percentage);
+        if (typeof ((_l = concept.fiscalPrices) === null || _l === void 0 ? void 0 : _l.amount) !== 'undefined' && typeof ((_m = concept.fiscalPrices) === null || _m === void 0 ? void 0 : _m.discount) !== 'undefined') {
+            concept.fiscalPrices.discount = (_p = (_o = concept.fiscalPrices) === null || _o === void 0 ? void 0 : _o.discount) === null || _p === void 0 ? void 0 : _p.mul(percentage);
             discount = discount.add(concept.fiscalPrices.discount);
-            concept.fiscalPrices.amount = (_q = (_p = concept.fiscalPrices) === null || _p === void 0 ? void 0 : _p.amount) === null || _q === void 0 ? void 0 : _q.mul(percentage);
+            concept.fiscalPrices.amount = (_r = (_q = concept.fiscalPrices) === null || _q === void 0 ? void 0 : _q.amount) === null || _r === void 0 ? void 0 : _r.mul(percentage);
             amount = amount.add(concept.fiscalPrices.amount);
-            concept.fiscalPrices.baseTax = (_s = (_r = concept.fiscalPrices) === null || _r === void 0 ? void 0 : _r.amount) === null || _s === void 0 ? void 0 : _s.sub(((_t = concept.fiscalPrices) === null || _t === void 0 ? void 0 : _t.discount) || 0);
+            concept.fiscalPrices.baseTax = (_t = (_s = concept.fiscalPrices) === null || _s === void 0 ? void 0 : _s.amount) === null || _t === void 0 ? void 0 : _t.sub(((_u = concept.fiscalPrices) === null || _u === void 0 ? void 0 : _u.discount) || 0);
             const { tax, amount: total } = (0, exports.getAmountAndTaxFromPrice)({
                 base: concept.fiscalPrices.baseTax,
                 ivaPercentage
@@ -125,13 +125,14 @@ exports.applyPayment = applyPayment;
  * Obtiene los detalles de los conceptos de la factura.
  * @param {Object} params - Parámetros de entrada para obtener los detalles de los conceptos.
  * @returns {Object} - Detalles de los conceptos de la factura.
- * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage })
+ * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage, charges: saleCharges })
  */
 const getConceptAmountDetails = (params) => {
     const { concepts, fountType, ivaPercentage } = params;
     let discount = (0, exports.createDecimal)(0);
     let amount = (0, exports.createDecimal)(0);
     concepts.forEach((concept) => {
+        var _a, _b;
         concept.fiscalPrices = {
             unitPrice: (0, exports.createDecimal)(0),
             baseTax: (0, exports.createDecimal)(0),
@@ -140,7 +141,7 @@ const getConceptAmountDetails = (params) => {
             total: (0, exports.createDecimal)(0),
             discount: (0, exports.createDecimal)(0),
         };
-        const charges = concept.charges.sort((a, b) => a.type - b.type);
+        const charges = (_b = (_a = concept === null || concept === void 0 ? void 0 : concept.charges) === null || _a === void 0 ? void 0 : _a.sort) === null || _b === void 0 ? void 0 : _b.call(_a, (a, b) => a.type - b.type);
         concept.basePrice = (0, exports.createDecimal)(concept.basePrice);
         concept.quantity = (0, exports.createDecimal)(concept.quantity);
         concept.amountWithoutCharges = concept.basePrice.mul(concept.quantity);
@@ -212,9 +213,9 @@ const applyCharges = (params) => {
     let discounts = new decimal_js_1.Decimal(0);
     let surcharges = new decimal_js_1.Decimal(0);
     if (fountType === types_1.FountTypeEnum.DISCOUNT_ON_DISCOUNT) {
-        const chargesSorted = charges.map((value, index) => (Object.assign(Object.assign({}, value), { order: (value === null || value === void 0 ? void 0 : value.order) || index }))).sort((a, b) => a.order - b.order);
+        const chargesSorted = charges === null || charges === void 0 ? void 0 : charges.map((value, index) => (Object.assign(Object.assign({}, value), { order: (value === null || value === void 0 ? void 0 : value.order) || index }))).sort((a, b) => a.order - b.order);
         let variantBase = new decimal_js_1.Decimal(amount);
-        chargesSorted.forEach((charge) => {
+        chargesSorted === null || chargesSorted === void 0 ? void 0 : chargesSorted.forEach((charge) => {
             const { amount: chargeAmount } = (0, exports.calculateCharge)({ charge, base: variantBase });
             if (charge.type === types_1.ChargeTypeEnum.DISCOUNTS) {
                 variantBase = new decimal_js_1.Decimal(variantBase.sub(chargeAmount));
@@ -229,7 +230,7 @@ const applyCharges = (params) => {
         charges = chargesSorted;
     }
     if (fountType === types_1.FountTypeEnum.TRADITIONAL) {
-        charges.forEach((charge) => {
+        charges === null || charges === void 0 ? void 0 : charges.forEach((charge) => {
             const { amount: chargeAmount } = (0, exports.calculateCharge)({ charge, base: new decimal_js_1.Decimal(amount) });
             if (charge.type === types_1.ChargeTypeEnum.DISCOUNTS) {
                 discounts = new decimal_js_1.Decimal(discounts.add(chargeAmount));
@@ -307,7 +308,7 @@ const getAmountAndTaxFromPriceWithIva = (params) => {
     const base = (0, exports.createDecimal)(params.base);
     const percentage = (0, exports.createDecimal)(params.ivaPercentage).add(1);
     const amount = base.div(percentage);
-    const tax = amount.mul(percentage);
+    const tax = base.sub(amount);
     return {
         base,
         amount,

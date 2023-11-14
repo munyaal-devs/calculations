@@ -36,10 +36,10 @@ export const createDecimal = (value: string | number | Decimal): Decimal => {
  * @returns {Object} - Detalles de la factura calculada.
  * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage, charges })
  */
-export const calculateInvoice = <T = any, R = any>(params: CalculateInvoiceParams<T, R>): ConceptAmountDetailsResult<T, R> => {
-    const {concepts, fountType, ivaPercentage, charges} = params;
+export const calculateInvoice = <T = any, R = any>(params: CalculateInvoiceParams<T>): ConceptAmountDetailsResult<T, R> => {
+    const {concepts, fountType, ivaPercentage} = params;
 
-    return getConceptAmountDetails<T, R>({concepts, fountType, ivaPercentage, charges})
+    return getConceptAmountDetails<T>({concepts, fountType, ivaPercentage})
 }
 
 /**
@@ -175,8 +175,8 @@ export const applyPayment = <T = any>(params: ApplyPayment): ConceptAmountDetail
  * @returns {Object} - Detalles de los conceptos de la factura.
  * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage, charges: saleCharges })
  */
-export const getConceptAmountDetails = <T = any, R = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T, R> => {
-    const {concepts, fountType, ivaPercentage, charges: saleCharges} = params;
+export const getConceptAmountDetails = <T = any>(params: ConceptAmountDetailsParams): ConceptAmountDetailsResult<T> => {
+    const {concepts, fountType, ivaPercentage} = params;
 
     let discount = createDecimal(0);
     let amount = createDecimal(0);
@@ -284,7 +284,6 @@ export const getConceptAmountDetails = <T = any, R = any>(params: ConceptAmountD
         baseTax,
         tax,
         total,
-        charges: saleCharges,
     }
 }
 
@@ -424,7 +423,7 @@ export const getAmountAndTaxFromPriceWithIva = (params: AmountAndTaxParams) => {
 
     const amount = base.div(percentage);
 
-    const tax = amount.mul(percentage);
+    const tax = base.sub(amount);
 
     return {
         base,

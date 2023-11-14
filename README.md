@@ -10,7 +10,7 @@ facturación, aplicar cargos, descuentos y pagos, y obtener montos e impuestos r
 Para utilizar esta librería en tu proyecto, puedes instalarla a través de NPM utilizando el siguiente comando:
 
 ```
-npm i @munyaal/cfdi-catalogs
+npm i @munyaal/calculations
 ```
 
 ## Uso básico
@@ -29,7 +29,7 @@ import {
     getPaymentAmount,
     getAmountAndTaxFromPriceWithIva,
     getAmountAndTaxFromPrice,
-} from '@munyaal/cfdi-catalogs';
+} from '@munyaal/calculations';
 ```
 
 Luego, puedes utilizar estas funciones según tus necesidades en tu aplicación.
@@ -169,7 +169,7 @@ import {
     Concept,
     FountTypeEnum,
     TaxPercentageEnum,
-} from 'tu-libreria-de-calculo-facturas';
+} from '@munyaal/calculations';
 
 // Definición de cargos personalizados
 const charges: Charge[] = [

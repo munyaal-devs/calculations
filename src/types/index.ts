@@ -252,7 +252,7 @@ export type Concept<T = any> = Prices & {
 /**
  * Parámetros para calcular una factura.
  */
-export type CalculateInvoiceParams<T = any, R = any> = {
+export type CalculateInvoiceParams<T = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
@@ -268,10 +268,6 @@ export type CalculateInvoiceParams<T = any, R = any> = {
      */
     ivaPercentage: TaxPercentage;
 
-    /**
-    * Arreglo de cargos que aplican sobre la venta en general (opcional)
-    * */
-    charges?: Charge<R>[];
 }
 
 /**
@@ -322,7 +318,7 @@ export type ApplyPayment<T = any> = {
 /**
  * Parámetros para calcular los detalles de los conceptos.
  */
-export type ConceptAmountDetailsParams<T = any, R = any> = {
+export type ConceptAmountDetailsParams<T = any> = {
     /**
      * Arreglo de conceptos con sus cargos
      */
@@ -337,11 +333,6 @@ export type ConceptAmountDetailsParams<T = any, R = any> = {
      * Porcentaje de IVA para aplicar
      */
     ivaPercentage: TaxPercentage;
-
-    /**
-    * Arreglo de cargos que aplican en la venta (opcional)
-    * */
-    charges?: Charge<R>[];
 }
 
 /**
@@ -352,11 +343,6 @@ export type ConceptAmountDetailsResult<T = any, R = any> = {
      * Arreglo de conceptos con sus cargos
      */
     concepts: Concept<T>[];
-
-    /**
-    * Arreglo de cargos en la venta (opcional)
-    * */
-    charges?: Charge<R>[];
 } & FiscalPrices
 
 /**

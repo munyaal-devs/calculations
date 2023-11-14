@@ -11,9 +11,9 @@ export declare const createDecimal: (value: string | number | Decimal) => Decima
  * Calcula una factura.
  * @param {Object} params - Parámetros de entrada para el cálculo de la factura.
  * @returns {Object} - Detalles de la factura calculada.
- * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage })
+ * Ejemplo: calculateInvoice({ concepts, fountType, ivaPercentage, charges })
  */
-export declare const calculateInvoice: <T = any>(params: CalculateInvoiceParams<T>) => ConceptAmountDetailsResult<T>;
+export declare const calculateInvoice: <T = any, R = any>(params: CalculateInvoiceParams<T>) => ConceptAmountDetailsResult<T, R>;
 /**
  * Calcula los precios de una factura ajustados al pago
  * @param {Object} params - Parámetros de entrada para el cálculo de los precios de la factura.
@@ -21,8 +21,8 @@ export declare const calculateInvoice: <T = any>(params: CalculateInvoiceParams<
  * Ejemplo: calculateInvoicePrices({ payment, concepts, fountType, ivaPercentage })
  */
 export declare const calculateInvoicePrices: <T = any>(params: CalculateInvoicePricesParams<T>) => {
-    detailsWithPaymentApplied: ConceptAmountDetailsResult<T>;
-    detailsWithoutPaymentApplied: ConceptAmountDetailsResult<T>;
+    detailsWithPaymentApplied: ConceptAmountDetailsResult<T, any>;
+    detailsWithoutPaymentApplied: ConceptAmountDetailsResult<T, any>;
 };
 /**
  * Aplica un pago a los detalles de la factura.
@@ -30,14 +30,14 @@ export declare const calculateInvoicePrices: <T = any>(params: CalculateInvoiceP
  * @returns {Object} - Detalles de la factura con el pago aplicado.
  * Ejemplo: applyPayment({ details, percentage, ivaPercentage })
  */
-export declare const applyPayment: <T = any>(params: ApplyPayment) => ConceptAmountDetailsResult<T>;
+export declare const applyPayment: <T = any>(params: ApplyPayment) => ConceptAmountDetailsResult<T, any>;
 /**
  * Obtiene los detalles de los conceptos de la factura.
  * @param {Object} params - Parámetros de entrada para obtener los detalles de los conceptos.
  * @returns {Object} - Detalles de los conceptos de la factura.
- * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage })
+ * Ejemplo: getConceptAmountDetails({ concepts, fountType, ivaPercentage, charges: saleCharges })
  */
-export declare const getConceptAmountDetails: <T = any>(params: ConceptAmountDetailsParams) => ConceptAmountDetailsResult<T>;
+export declare const getConceptAmountDetails: <T = any>(params: ConceptAmountDetailsParams) => ConceptAmountDetailsResult<T, any>;
 /**
  * Aplica cargos a un monto dado.
  * @param {Object} params - Parámetros de entrada para aplicar los cargos.
@@ -48,7 +48,7 @@ export declare const applyCharges: (params: ApplyChargesParams) => {
     base: Decimal;
     discounts: Decimal;
     surcharges: Decimal;
-    charges: Charge<any>[];
+    charges: Charge<any>[] | undefined;
 };
 /**
  * Calcula un cargo en función de su tipo y aplicación.
