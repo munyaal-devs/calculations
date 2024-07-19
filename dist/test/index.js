@@ -44,19 +44,6 @@ const traditional = (0, src_1.calculateInvoice)({
 });
 traditional.concepts.forEach((value) => {
     var _a, _b, _c, _d, _e, _f;
-    /*    console.log(`Producto - ${value.name}`);
-    
-        console.log(`Cantidad               $ `, value?.quantity?.toFixed(6).toString())
-    
-    
-        console.log(`Precio unitario        $ `, value?.fiscalPrices?.unitPrice?.toFixed(6).toString())
-        console.log(`Importe                $ `, value?.fiscalPrices?.amount?.toFixed(6).toString())
-        console.log(`Descuento              $ `, value?.fiscalPrices?.discount?.toFixed(6).toString())
-    
-        console.log(`Base de impuestos      $ `, value?.fiscalPrices?.baseTax?.toFixed(6).toString())
-        console.log(`Impuesto               $ `, value?.fiscalPrices?.tax?.toFixed(6).toString())
-    
-        console.log('\n')*/
     console.log(`Producto - ${value.name}`);
     console.log(`Cantidad               $ `, (_a = value === null || value === void 0 ? void 0 : value.quantity) === null || _a === void 0 ? void 0 : _a.toFixed(6).toString());
     console.log(`Precio unitario        $ `, (_b = value === null || value === void 0 ? void 0 : value.basePrice) === null || _b === void 0 ? void 0 : _b.toFixed(6).toString());
